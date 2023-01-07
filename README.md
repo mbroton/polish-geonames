@@ -6,13 +6,14 @@
 
 ## Download
 
-See [download](https://github.com/mbroton/polish-geodata/releases) section.
+See [Releases](https://github.com/mbroton/polish-geodata/releases)
 
 ## Structure
 The structure of object/row:
 
 | Name     | Type                               | Polish equivalent |
 |----------|------------------------------------|-------------------|
+| id       | `integer`                           | -                 |
 | name     | `string`                           | -                 |
 | type     | `string` (`"city"` or `"village"`) | -                 |
 | province | `string`                           | województwo       |
@@ -35,7 +36,9 @@ Data comes from Polish government's website (`dane.gov.pl`), specifically from [
 
 ## Parser
 
-Data available here is parsed by:
+Data available here is parsed by `parser.py`.
+
+Usage:
 
 ```shell
 python3 parser.py [XML source file] [output file] 
