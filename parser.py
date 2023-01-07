@@ -2,8 +2,11 @@ import csv
 import json
 import sys
 import xml.etree.ElementTree as ET
+from typing import Callable
 
-_PREFIX = "{urn:gugik:specyfikacje:gmlas:panstwowyRejestrNazwGeograficznych:1.0}"
+_PREFIX = (
+    "{urn:gugik:specyfikacje:gmlas:panstwowyRejestrNazwGeograficznych:1.0}"
+)
 _TRANSLATIONS = {
     "nazwaGlowna": "name",
     "rodzajObiektu": "type",
@@ -23,7 +26,7 @@ FIELD_VALUE_PARSER = {
 
 def read_element(element: ET.Element) -> dict:
     """Read element data and translate fields names from polish"""
-    member_data = {}
+    member_data = {"id": None}
     for e in element.iter():
         if e.tag in list(FIELDS_TRANSLATION):
             tag_name = FIELDS_TRANSLATION[e.tag]
@@ -32,7 +35,7 @@ def read_element(element: ET.Element) -> dict:
 
 
 def transform_values(data: dict) -> dict:
-    """Transforms values of elements"""
+    """Transforms values of elements as defined in FIELD_VALUE_PARSER"""
     new_data = {}
     for k, v in data.items():
         if k in FIELD_VALUE_PARSER:
@@ -41,12 +44,12 @@ def transform_values(data: dict) -> dict:
     return new_data
 
 
-def save_as_json(data: dict, output_file: str) -> None:
+def save_as_json(data: list[dict], output_file: str) -> None:
     with open(output_file, "w") as f:
         json.dump(data, f, ensure_ascii=False)
 
 
-def save_as_tsv(data: dict, output_file: str) -> None:
+def save_as_tsv(data: list[dict], output_file: str) -> None:
     header = data[0].keys()
     with open(output_file, "w") as f:
         writer = csv.DictWriter(f, fieldnames=header, delimiter="\t")
@@ -54,7 +57,7 @@ def save_as_tsv(data: dict, output_file: str) -> None:
         writer.writerows(data)
 
 
-_EXT_TO_FUNC = {
+_EXT_TO_FUNC: dict[str, Callable[[list[dict], str], None]] = {
     "json": save_as_json,
     "tsv": save_as_tsv,
 }
@@ -62,7 +65,9 @@ _EXT_TO_FUNC = {
 
 def main() -> int:
     if len(sys.argv) != 3:
-        print("Usage: python3 parser.py [XML source file] [output file json or tsv]")
+        print(
+            "Usage: python3 parser.py [XML source file] [output file json or tsv]"
+        )
         return 1
 
     source_file = sys.argv[1]
@@ -93,9 +98,15 @@ def main() -> int:
         parsed_data.append(new)
 
     print(f"Parsing finished. {len(parsed_data)} elements loaded.")
+    print("Sorting")
+    # Sort and insert `id` value
+    parsed_data.sort(key=lambda p: p["name"])
+    for i, place in enumerate(parsed_data):
+        place["id"] = i + 1
+    # Save to file
     print(f"Saving to {output_file!r}.")
     _EXT_TO_FUNC[output_ext](parsed_data, output_file)
-    
+
     return 0
 
 
