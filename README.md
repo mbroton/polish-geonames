@@ -6,7 +6,7 @@
 
 ## Download
 
-See [download]() section.
+See [download](https://github.com/mbroton/polish-geodata/releases) section.
 
 ## Structure
 The structure of object/row:
