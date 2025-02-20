@@ -28,8 +28,8 @@ The structure of object/row:
 |-------------|--------------------------------------------------------------------|
 | Format      | XML                                                                |
 | License     | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/legalcode) |
-| Valid as of | 01/01/2024                                                         |
-| Entries     | 44499                                                              |
+| Valid as of | 01/01/2025                                                         |
+| Entries     | 44631                                                              |
 |             |                                                                    |
 
 Data comes from Polish government's website (`dane.gov.pl`), specifically from [Państwowy Rejestr Nazw Geograficznych](https://dane.gov.pl/pl/dataset/780,panstwowy-rejestr-nazw-geograficznych-prng/resource/26774/table).
