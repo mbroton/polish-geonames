@@ -44,6 +44,6 @@ python3 parser.py PRNG_MIEJSCOWOSCI_GML.xml polish-geonames.tsv
 
 The parser keeps only records whose official type is `miasto` or `wieś`, translates field names to English, validates the selected data, sorts it by locality name, and assigns sequential IDs.
 
-## Licence
+## License
 
 This work is licensed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/).
