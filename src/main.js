@@ -31,9 +31,69 @@ let map;
 let mapModule;
 let mapStarting = false;
 let mapVisible = false;
+let mapFitted = false;
+let currentPage = "home";
 let worker;
 let sequence = 0;
 const waiting = new Map();
+
+function showPage(focus = false) {
+  if (location.hash === "#about") {
+    $("#about").open = true;
+    $("#about").scrollIntoView();
+    return;
+  }
+  if (location.hash === "#main-content") return;
+  const route = location.hash.replace(/^#\/?/, "");
+  currentPage = ["map", "download"].includes(route) ? route : "home";
+  for (const page of document.querySelectorAll("[data-page]")) {
+    page.hidden = page.dataset.page !== currentPage;
+  }
+  for (const link of document.querySelectorAll("[data-route]")) {
+    if (link.dataset.route === currentPage)
+      link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
+  document.title = `${{ home: "Home", map: "Map", download: "Download" }[currentPage]} — Polish geonames`;
+  mapVisible =
+    currentPage === "map" &&
+    $("#tab-map").getAttribute("aria-selected") === "true";
+  if (mapVisible) revealMap();
+  if (focus) {
+    document
+      .querySelector(`[data-page="${currentPage}"] h2`)
+      .focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  }
+}
+
+function drawOverview(points) {
+  const canvas = $("#overview-map");
+  const context = canvas.getContext("2d");
+  // Scale longitude at Poland's central latitude to keep geographic proportions.
+  const longitudeScale = Math.cos((52 * Math.PI) / 180);
+  const scale = Math.min(
+    (canvas.width - 60) / (10.2 * longitudeScale),
+    (canvas.height - 60) / 6,
+  );
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = "#245fc580";
+  for (let i = 0; i < points.length; i += 2) {
+    const x = canvas.width / 2 + (points[i] - 19.1) * longitudeScale * scale;
+    const y = canvas.height / 2 + (52 - points[i + 1]) * scale;
+    context.fillRect(x, y, 1.6, 1.6);
+  }
+  canvas.setAttribute("aria-busy", "false");
+  $("#overview-caption").textContent =
+    `${number(points.length / 2)} localities. Each dot is a source record. The home map always shows the full register.`;
+}
+
+async function revealMap() {
+  await updateMap();
+  if (!mapVisible || !map) return;
+  map.resize();
+  if (!mapFitted && map.getSource("places")) fitSelection();
+}
 
 function message(action, payload = {}) {
   return new Promise((resolve, reject) => {
@@ -335,6 +395,7 @@ function mapFeatures() {
 
 function fitSelection() {
   if (!map || !latest?.points.length) return;
+  mapFitted = true;
   const points = latest.points;
   let west = 180,
     east = -180,
@@ -490,7 +551,10 @@ async function updateMap() {
           map.getCanvas().style.cursor = "";
         });
       }
-      fitSelection();
+      if (mapVisible) {
+        map.resize();
+        fitSelection();
+      }
       map.once("idle", () => $("#map").setAttribute("aria-busy", "false"));
     });
   } catch {
@@ -510,10 +574,8 @@ function activateTab(button) {
     tab.tabIndex = active ? 0 : -1;
     $(`#${tab.getAttribute("aria-controls")}`).hidden = !active;
   }
-  if (button.id === "tab-map") {
-    mapVisible = true;
-    updateMap().then(() => map?.resize());
-  }
+  mapVisible = currentPage === "map" && button.id === "tab-map";
+  if (mapVisible) revealMap();
 }
 
 function installEvents() {
@@ -599,17 +661,6 @@ function installEvents() {
       updateDownloadState();
     }
   });
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      if (entry.isIntersecting) {
-        mapVisible = true;
-        updateMap();
-        observer.disconnect();
-      }
-    },
-    { rootMargin: "150px" },
-  );
-  observer.observe($("#map-panel"));
 }
 
 async function start() {
@@ -701,7 +752,11 @@ async function start() {
         );
       waiting.clear();
     };
-    const { provinces } = await message("load", { manifest, base: base.href });
+    const { provinces, points } = await message("load", {
+      manifest,
+      base: base.href,
+    });
+    drawOverview(points);
     setOptions(
       $("#province"),
       provinces.map((name) => [name, name]),
@@ -714,7 +769,12 @@ async function start() {
   } catch (error) {
     showError($("#global-status"), error);
     $("#loading").textContent = "The register could not be loaded";
+    $("#overview-caption").textContent =
+      "The locality map could not be loaded.";
+    $("#overview-map").setAttribute("aria-busy", "false");
   }
 }
 
+window.addEventListener("hashchange", () => showPage(true));
+showPage();
 start();

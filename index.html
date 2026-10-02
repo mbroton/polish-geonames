@@ -8,17 +8,23 @@
       content="Download Polish localities from PRNG. Filter places, select fields, and export JSON, CSV, TSV, GeoJSON, or XLSX."
     />
     <meta name="theme-color" content="#ffffff" />
-    <title>Polish geonames — Download locality data</title>
+    <title>Home — Polish geonames</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   </head>
   <body>
-    <a class="skip-link" href="#builder">Skip to custom download</a>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
       <h1>Polish geonames</h1>
-      <p>Polish locality data from PRNG</p>
-      <a href="https://github.com/mbroton/polish-geonames">GitHub</a>
+      <nav aria-label="Main navigation">
+        <a href="#/" data-route="home" aria-current="page">Home</a>
+        <a href="#/map" data-route="map">Map</a>
+        <a href="#/download" data-route="download">Download</a>
+      </nav>
+      <a class="github-link" href="https://github.com/mbroton/polish-geonames"
+        >GitHub</a
+      >
     </header>
-    <main>
+    <main id="main-content" tabindex="-1">
       <div class="dataset-info" aria-label="Dataset summary">
         <span
           ><strong id="total-count">—</strong> localities ·
@@ -30,9 +36,50 @@
       </div>
       <p id="global-status" class="notice" role="status" hidden></p>
 
-      <section id="downloads" aria-labelledby="download-title">
+      <section id="home" data-page="home" aria-labelledby="home-title">
+        <div class="home-intro">
+          <h2 id="home-title" tabindex="-1">Polish locality data</h2>
+          <p>
+            Find and download cities, villages, and other localities from the
+            official PRNG register, with coordinates and administrative
+            divisions.
+          </p>
+          <p>
+            Use <a href="#/map">Map</a> to select places and fields for your own
+            file, or <a href="#/download">Download</a> for prepared datasets.
+            Available formats: JSON, CSV, TSV, GeoJSON, and XLSX.
+          </p>
+        </div>
+        <figure class="overview-map">
+          <canvas
+            id="overview-map"
+            width="1100"
+            height="800"
+            role="img"
+            aria-label="Dot map of all localities in Poland"
+            aria-describedby="overview-caption"
+            aria-busy="true"
+          ></canvas>
+          <figcaption id="overview-caption" role="status">
+            Loading the locality map…
+          </figcaption>
+        </figure>
+      </section>
+
+      <section
+        id="downloads"
+        data-page="download"
+        aria-labelledby="download-title"
+        hidden
+      >
         <div class="section-heading">
-          <h2 id="download-title">Prepared downloads</h2>
+          <div>
+            <h2 id="download-title" tabindex="-1">Prepared downloads</h2>
+            <p>
+              Choose a complete dataset and file format. For a custom selection,
+              use <a href="#/map">Map</a>.
+            </p>
+          </div>
           <a id="source-note-link" href="#about">Source and attribution</a>
         </div>
         <table class="downloads-table">
@@ -48,10 +95,15 @@
         </table>
       </section>
 
-      <section id="builder" aria-labelledby="builder-title">
+      <section
+        id="builder"
+        data-page="map"
+        aria-labelledby="builder-title"
+        hidden
+      >
         <div class="section-heading">
           <div>
-            <h2 id="builder-title">Custom download</h2>
+            <h2 id="builder-title" tabindex="-1">Map and custom download</h2>
             <p>
               Start with all localities. Choose the places and fields to
               include.

@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
       ),
     }),
   );
-  await page.goto("./");
+  await page.goto("./#/map");
   await expect(page.locator("#loading")).toHaveText("Selection ready");
 });
 
@@ -96,6 +96,10 @@ test("ready-made downloads are independent of custom filters and decompress corr
 }) => {
   await page.locator("[data-types=none]").click();
   await expect(page.locator("#match-count")).toHaveText("0");
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Download", exact: true })
+    .click();
   const pending = page.waitForEvent("download");
   await page
     .getByRole("link", {
@@ -106,6 +110,85 @@ test("ready-made downloads are independent of custom filters and decompress corr
   const download = await pending;
   const rows = JSON.parse(await readFile(await download.path(), "utf8"));
   expect(rows.find((row) => row.id === 76566).name).toBe("Małachów");
+});
+
+test("Home shows all localities and navigation preserves the custom selection", async ({
+  page,
+}) => {
+  await page.goto("./");
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(
+    navigation.getByRole("link", { name: "Home", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("#home")).toBeVisible();
+  await expect(page.locator("#builder")).toBeHidden();
+  await expect(page.locator("#downloads")).toBeHidden();
+  await expect(page.locator("#overview-map")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+  const wholeMap = await page
+    .locator("#overview-map")
+    .evaluate((canvas) => canvas.toDataURL());
+  const caption = await page.locator("#overview-caption").textContent();
+
+  await navigation.getByRole("link", { name: "Map", exact: true }).click();
+  await expect(page.locator("#loading")).toHaveText("Selection ready");
+  await page.locator("#search").fill("malachow");
+  await page.locator("[data-types=none]").click();
+  await page.locator("input[name=field][value=lat]").uncheck();
+  await page.locator("#format").selectOption("csv");
+  await expect(page.locator("#match-count")).toHaveText("0");
+  await navigation.getByRole("link", { name: "Download", exact: true }).click();
+  await expect(page.locator("#downloads")).toBeVisible();
+  await expect(page.locator("#builder")).toBeHidden();
+
+  await page.goBack();
+  await expect(page.locator("#builder")).toBeVisible();
+  await expect(page.locator("#search")).toHaveValue("malachow");
+  await expect(page.locator("#format")).toHaveValue("csv");
+  await expect(page.locator("input[name=field][value=lat]")).not.toBeChecked();
+  await expect(page.locator("#match-count")).toHaveText("0");
+  await page.goBack();
+  await expect(page.locator("#home")).toBeVisible();
+  await expect(page.locator("#overview-caption")).toHaveText(caption);
+  expect(
+    await page
+      .locator("#overview-map")
+      .evaluate((canvas) => canvas.toDataURL()),
+  ).toBe(wholeMap);
+  await page.goForward();
+  await expect(page.locator("#builder")).toBeVisible();
+  await expect(page.locator("#match-count")).toHaveText("0");
+});
+
+test("direct Download links survive a reload and all pages fit a phone", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./#/download");
+  await page.reload();
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(
+    navigation.getByRole("link", { name: "Download", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("#prepared-downloads")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+  await expect(page.locator("#home")).toBeHidden();
+  await expect(page.locator("#builder")).toBeHidden();
+  for (const name of ["Download", "Home", "Map"]) {
+    await navigation.getByRole("link", { name, exact: true }).click();
+    await expect(
+      navigation.getByRole("link", { name, exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
 });
 
 test("map renders points and does not change the data selection when moved", async ({
@@ -127,10 +210,9 @@ test("map renders points and does not change the data selection when moved", asy
   await page.locator("#fit-map").click();
   await expect(async () => {
     await page.locator(".maplibregl-canvas").click();
-    await expect(page.locator(".maplibregl-popup")).toContainText(
-      "PRNG 7791",
-      { timeout: 1_000 },
-    );
+    await expect(page.locator(".maplibregl-popup")).toContainText("PRNG 7791", {
+      timeout: 1_000,
+    });
   }).toPass({ timeout: 30_000 });
 });
 

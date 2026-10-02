@@ -28,13 +28,19 @@ self.onmessage = async ({ data: message }) => {
       manifest = message.manifest;
       base = message.base;
       index = await readCompressed(manifest.index);
-      self.postMessage({
-        request,
-        action,
-        provinces: [
-          ...new Set(index.map((row) => row.province).filter(Boolean)),
-        ].sort(),
-      });
+      const points = new Float64Array(index.length * 2);
+      index.forEach((row, i) => points.set([row.lng, row.lat], i * 2));
+      self.postMessage(
+        {
+          request,
+          action,
+          points,
+          provinces: [
+            ...new Set(index.map((row) => row.province).filter(Boolean)),
+          ].sort(),
+        },
+        [points.buffer],
+      );
       return;
     }
     if (action === "lookup") {
