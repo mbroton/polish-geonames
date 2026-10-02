@@ -472,15 +472,13 @@ Select your columns to preview the output.</pre
     >
     <footer class="site-footer">
       <div class="dataset-info" aria-label="Dataset summary">
+        <span><strong id="total-count">—</strong> localities</span>
         <span
-          ><strong id="total-count">—</strong> localities ·
-          <span id="type-count">—</span> types</span
-        >
-        <span>Source export: <span id="source-date">Loading…</span></span>
-        <span id="check-date"></span>
+          id="check-date"
+          title="Date of the last successful source check."
+        ></span>
       </div>
       <div class="footer-links">
-        <p>Built by <a href="https://github.com/mbroton">mbroton</a>.</p>
         <nav aria-label="Footer navigation">
           <a href="#/source" data-route="source">Data source</a>
           <a href="#/license" data-route="license">License</a>
@@ -488,6 +486,7 @@ Select your columns to preview the output.</pre
             >Open source on GitHub</a
           >
         </nav>
+        <p>Built by <a href="https://github.com/mbroton">mbroton</a></p>
       </div>
     </footer>
     <script type="module" src="/src/main.js"></script>

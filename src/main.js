@@ -700,16 +700,15 @@ async function start() {
         "The data build is incomplete. Run the download build before starting the site.",
       );
     $("#total-count").textContent = number(manifest.count);
-    $("#type-count").textContent = number(Object.keys(manifest.types).length);
-    $("#source-date").textContent = date(manifest.source_export);
-    $("#check-date").textContent = `Checked ${date(manifest.last_checked)}`;
+    $("#check-date").textContent =
+      `Up to date as of ${date(manifest.last_checked)}`;
     if (Date.now() - new Date(manifest.last_checked).getTime() > 3 * 86400_000)
       showError(
         $("#global-status"),
         "The source check is overdue. The downloads below remain the last validated snapshot.",
       );
     $("#upstream-note").textContent =
-      `Latest checked upstream export: ${date(manifest.upstream_export)}. Published snapshot: ${manifest.version}.`;
+      `Source export: ${date(manifest.source_export)}. Latest checked upstream export: ${date(manifest.upstream_export)}. Published snapshot: ${manifest.version}.`;
     for (const snapshot of manifest.history) {
       const li = document.createElement("li");
       const link = document.createElement("a");

@@ -16,7 +16,7 @@ The top menu has three views:
 
 Switching views keeps the custom selection. Direct links such as `#/map` and `#/download` also work on GitHub Pages. The home map always shows all records, independent of the custom filters.
 
-The footer shows dataset counts, the source export date, and the last successful check. It links to Data source and License pages and credits the website author.
+The footer shows the locality count and an “Up to date as of” date from the last successful source check, alongside the source, license, GitHub, and author links. The Data source page gives the source export date and snapshot details.
 
 There are two separate download paths:
 

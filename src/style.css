@@ -640,8 +640,11 @@ summary span {
   background: var(--surface);
 }
 .site-footer {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 24px;
   margin-top: 24px;
   padding: 16px 0;
   border-top: 1px solid var(--line);
@@ -652,9 +655,12 @@ summary span {
 .footer-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px 24px;
+  gap: 8px 20px;
+}
+.dataset-info > span,
+.footer-links > p {
+  white-space: nowrap;
 }
 .site-footer nav {
   display: flex;
@@ -750,9 +756,6 @@ code {
   .dataset-info {
     gap: 5px 14px;
     line-height: 1.5;
-  }
-  .dataset-info > span:first-child {
-    flex-basis: 100%;
   }
   .downloads-table th,
   .downloads-table td {
