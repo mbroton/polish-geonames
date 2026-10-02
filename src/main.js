@@ -84,8 +84,6 @@ function drawOverview(points) {
     context.fillRect(x, y, 1.6, 1.6);
   }
   canvas.setAttribute("aria-busy", "false");
-  $("#overview-caption").textContent =
-    `${number(points.length / 2)} localities. Each dot is a source record. This overview always shows the full register.`;
 }
 
 async function revealMap() {
@@ -793,8 +791,6 @@ async function start() {
   } catch (error) {
     showError($("#global-status"), error);
     $("#loading").textContent = "The register could not be loaded";
-    $("#overview-caption").textContent =
-      "The locality map could not be loaded.";
     $("#overview-map").setAttribute("aria-busy", "false");
   }
 }

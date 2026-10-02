@@ -185,13 +185,6 @@ select {
   width: 100%;
   height: auto;
 }
-.overview-map figcaption {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-  text-align: center;
-  margin-top: 8px;
-}
 .dataset-info {
   display: flex;
   align-items: center;

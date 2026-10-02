@@ -124,13 +124,13 @@ test("ready-made downloads are independent of custom filters and decompress corr
   expect(rows.find((row) => row.id === 76566).name).toBe("Małachów");
 });
 
-test("Home opens the builder and About preserves the full overview and selection", async ({
+test("Map opens the builder and About preserves the full overview and selection", async ({
   page,
 }) => {
   await page.goto("./");
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
   await expect(
-    navigation.getByRole("link", { name: "Home", exact: true }),
+    navigation.getByRole("link", { name: "Map", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   await expect(page).toHaveTitle("Polish Geonames — Map & data downloads");
   await expect(page.locator("#builder")).toBeVisible();
@@ -147,9 +147,8 @@ test("Home opens the builder and About preserves the full overview and selection
   const wholeMap = await page
     .locator("#overview-map")
     .evaluate((canvas) => canvas.toDataURL());
-  const caption = await page.locator("#overview-caption").textContent();
 
-  await navigation.getByRole("link", { name: "Home", exact: true }).click();
+  await navigation.getByRole("link", { name: "Map", exact: true }).click();
   await expect(page.locator("#loading")).toHaveText("Selection ready");
   await page.locator("#search").fill("malachow");
   await page.locator("[data-types=none]").click();
@@ -169,7 +168,6 @@ test("Home opens the builder and About preserves the full overview and selection
   await expect(page.locator("#match-count")).toHaveText("0");
   await page.goBack();
   await expect(page.locator("#about")).toBeVisible();
-  await expect(page.locator("#overview-caption")).toHaveText(caption);
   expect(
     await page
       .locator("#overview-map")
@@ -196,7 +194,7 @@ test("direct Download links survive a reload and all pages fit a phone", async (
   );
   await expect(page.locator("#about")).toBeHidden();
   await expect(page.locator("#builder")).toBeHidden();
-  for (const name of ["Download", "Home", "About"]) {
+  for (const name of ["Download", "Map", "About"]) {
     await navigation.getByRole("link", { name, exact: true }).click();
     await expect(
       navigation.getByRole("link", { name, exact: true }),
@@ -226,7 +224,7 @@ test("direct About and existing Map links survive a reload", async ({
   await expect(page.locator("#builder")).toBeVisible();
   await expect(page).toHaveTitle("Polish Geonames — Map & data downloads");
   await expect(
-    navigation.getByRole("link", { name: "Home", exact: true }),
+    navigation.getByRole("link", { name: "Map", exact: true }),
   ).toHaveAttribute("aria-current", "page");
   await expect(page.locator("#map")).toHaveAttribute("aria-busy", "false");
 });

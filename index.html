@@ -16,7 +16,7 @@
     <header class="site-header">
       <h1>Polish Geonames</h1>
       <nav aria-label="Main navigation">
-        <a href="#/" data-route="home" aria-current="page">Home</a>
+        <a href="#/" data-route="home" aria-current="page">Map</a>
         <a href="#/download" data-route="download">Download</a>
         <a href="#/about" data-route="about">About</a>
       </nav>
@@ -41,7 +41,7 @@
             divisions.
           </p>
           <p>
-            Use <a href="#/">Home</a> to select places and fields for your own
+            Use <a href="#/">Map</a> to select places and fields for your own
             file, or <a href="#/download">Download</a> for prepared datasets.
             Available formats: JSON, CSV, TSV, GeoJSON, and XLSX.
           </p>
@@ -53,12 +53,8 @@
             height="800"
             role="img"
             aria-label="Dot map of all localities in Poland"
-            aria-describedby="overview-caption"
             aria-busy="true"
           ></canvas>
-          <figcaption id="overview-caption" role="status">
-            Loading the locality map…
-          </figcaption>
         </figure>
       </section>
 
@@ -71,9 +67,10 @@
         <div class="section-heading">
           <div>
             <h2 id="download-title" tabindex="-1">Prepared downloads</h2>
+            <p>Choose a prepared dataset and file format below.</p>
             <p>
-              Choose a complete dataset and file format. For a custom selection,
-              use <a href="#/">Home</a>.
+              For a custom download, use <a href="#/">Map</a> to filter places,
+              choose the columns to include, and select a file format.
             </p>
           </div>
           <a href="#/license">Source attribution</a>
