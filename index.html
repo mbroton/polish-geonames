@@ -32,7 +32,7 @@
         >
         <span>Source: <span id="source-date">Loading…</span></span>
         <span id="check-date"></span>
-        <a href="#about">About the data</a>
+        <a href="#/source">Data source</a>
       </div>
       <p id="global-status" class="notice" role="status" hidden></p>
 
@@ -80,7 +80,7 @@
               use <a href="#/map">Map</a>.
             </p>
           </div>
-          <a id="source-note-link" href="#about">Source and attribution</a>
+          <a href="#/license">Source attribution</a>
         </div>
         <table class="downloads-table">
           <thead>
@@ -172,30 +172,6 @@
                   <option value="niestandaryzowana">Non-standardized</option>
                 </select>
               </div>
-              <div class="fields-controls">
-                <div class="fields-heading">
-                  <h3>Fields</h3>
-                  <span id="fields-summary"></span>
-                </div>
-                <div class="check-actions">
-                  <button type="button" data-fields="all" class="text-button">
-                    All</button
-                  ><button
-                    type="button"
-                    data-fields="basic"
-                    class="text-button"
-                  >
-                    Basic</button
-                  ><button type="button" data-fields="none" class="text-button">
-                    Clear
-                  </button>
-                </div>
-                <div id="basic-fields" class="checkbox-list"></div>
-                <details class="advanced-fields">
-                  <summary>More source fields</summary>
-                  <div id="extra-fields" class="checkbox-list"></div>
-                </details>
-              </div>
             </fieldset>
           </form>
           <div class="results-panel">
@@ -205,6 +181,15 @@
                 ><span id="export-summary">Choose the data to include.</span>
               </div>
               <div class="export-actions">
+                <button
+                  id="toggle-columns"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="export-fields"
+                  disabled
+                >
+                  Columns <span id="fields-summary"></span>
+                </button>
                 <label for="format" class="sr-only">File format</label
                 ><select id="format">
                   <option value="json">JSON</option>
@@ -217,6 +202,34 @@
                 </button>
               </div>
             </div>
+            <fieldset
+              id="export-fields"
+              aria-labelledby="columns-title"
+              disabled
+              hidden
+            >
+              <legend id="columns-title">Download columns</legend>
+              <p>
+                Choose the columns for your file. The table and output preview
+                use the same selection.
+              </p>
+              <div class="check-actions">
+                <button type="button" data-fields="all" class="text-button">
+                  Select all
+                </button>
+                <button type="button" data-fields="basic" class="text-button">
+                  Basic columns
+                </button>
+                <button type="button" data-fields="none" class="text-button">
+                  Clear
+                </button>
+              </div>
+              <div id="basic-fields" class="checkbox-list"></div>
+              <details class="advanced-fields">
+                <summary>More source fields</summary>
+                <div id="extra-fields" class="checkbox-list"></div>
+              </details>
+            </fieldset>
             <p id="format-note" class="format-note">
               A JSON array of the selected fields.
             </p>
@@ -225,7 +238,7 @@
               <div
                 class="preview-tabs"
                 role="tablist"
-                aria-label="Data preview"
+                aria-label="Selection view"
               >
                 <button
                   id="tab-map"
@@ -235,21 +248,13 @@
                 >
                   Map</button
                 ><button
-                  id="tab-table"
+                  id="tab-preview"
                   role="tab"
                   aria-selected="false"
-                  aria-controls="table-panel"
+                  aria-controls="preview-panel"
                   tabindex="-1"
                 >
-                  Table</button
-                ><button
-                  id="tab-output"
-                  role="tab"
-                  aria-selected="false"
-                  aria-controls="output-panel"
-                  tabindex="-1"
-                >
-                  Output
+                  Preview
                 </button>
               </div>
               <span id="loading" role="status">Loading the register…</span>
@@ -274,115 +279,198 @@
               <p id="map-error" class="notice map-error" hidden></p>
             </div>
             <div
-              id="table-panel"
+              id="preview-panel"
               class="preview-panel"
               role="tabpanel"
-              aria-labelledby="tab-table"
+              aria-labelledby="tab-preview"
               hidden
             >
-              <div class="table-scroll">
-                <table id="preview-table">
-                  <thead></thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-              <p class="preview-note">
-                First 50 matching records. The download includes every match.
-              </p>
-            </div>
-            <div
-              id="output-panel"
-              class="preview-panel"
-              role="tabpanel"
-              aria-labelledby="tab-output"
-              hidden
-            >
-              <pre id="output-preview" tabindex="0">
-Select your fields to preview the output.</pre
+              <div
+                class="preview-mode-tabs"
+                role="tablist"
+                aria-label="Preview format"
               >
-              <p class="preview-note" id="output-note">
-                First 3 matching records.
-              </p>
+                <button
+                  id="tab-table"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="table-panel"
+                >
+                  Table
+                </button>
+                <button
+                  id="tab-output"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="output-panel"
+                  tabindex="-1"
+                >
+                  Output
+                </button>
+              </div>
+              <div id="table-panel" role="tabpanel" aria-labelledby="tab-table">
+                <div class="table-scroll">
+                  <table id="preview-table">
+                    <thead></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <p class="preview-note">
+                  First 50 matching records. The download includes every match.
+                </p>
+              </div>
+              <div
+                id="output-panel"
+                role="tabpanel"
+                aria-labelledby="tab-output"
+                hidden
+              >
+                <pre id="output-preview" tabindex="0">
+Select your columns to preview the output.</pre
+                >
+                <p class="preview-note" id="output-note">
+                  First 3 matching records.
+                </p>
+              </div>
             </div>
             <p class="builder-footnote">
               Include the
-              <a id="builder-source-link" href="#about">source attribution</a>
+              <a href="#/license">source attribution</a>
               when you share the data.
             </p>
           </div>
         </div>
       </section>
 
-      <details id="about" class="about-data">
-        <summary>Source, IDs, and previous snapshots</summary>
-        <div class="about-content">
-          <p>
-            This dataset contains cities, villages, and other localities from
-            Poland’s National Register of Geographical Names (PRNG). Coordinates
-            describe representative points, not boundaries or addresses.
-            <a
-              href="https://www.geoportal.gov.pl/pl/dane/panstwowy-rejestr-nazw-geograficznych-prng/"
-              >Official source</a
-            >.
-          </p>
-          <p id="upstream-note"></p>
-          <details>
-            <summary>IDs and data updates</summary>
-            <p>
-              The <code>id</code> field contains the official PRNG record ID.
-              Sorting or filtering does not change it. Releases through v0.4.0
-              used row numbers; those old IDs cannot be used to join new data.
-              GUGiK can change or remove source records.
-            </p>
-            <p>
-              The page shows the source export date and the last successful
-              check. A source check does not mean the records have changed.
-              Updates are published after validation.
-            </p>
-          </details>
-          <details>
-            <summary>License and file formats</summary>
-            <p>
-              Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG),
-              <a href="https://creativecommons.org/licenses/by/4.0/"
-                >CC BY 4.0</a
-              >. Converted by Polish geonames. Keep this attribution when you
-              use or share the data.
-            </p>
-            <p>
-              CSV and TSV protect text cells that begin with spreadsheet formula
-              characters. Arrays and objects use JSON text in CSV, TSV, and
-              XLSX. JSON and GeoJSON retain nested values.
-            </p>
-          </details>
-          <details>
-            <summary>Previous snapshots</summary>
-            <p>
-              The latest 30 changed snapshots are available as compressed JSON
-              with source metadata.
-            </p>
-            <ul id="snapshot-list"></ul>
-            <p>
-              <a href="https://github.com/mbroton/polish-geonames/releases"
-                >Earlier annual releases</a
-              >
-            </p>
-          </details>
-        </div>
-      </details>
+      <section
+        id="source"
+        class="document-page"
+        data-page="source"
+        aria-labelledby="source-title"
+        hidden
+      >
+        <h2 id="source-title" tabindex="-1">Data source</h2>
+        <p>
+          This dataset contains cities, villages, and other localities from
+          Poland’s National Register of Geographical Names (PRNG), maintained by
+          GUGiK.
+        </p>
+        <p>
+          <a
+            href="https://www.geoportal.gov.pl/pl/dane/panstwowy-rejestr-nazw-geograficznych-prng/"
+            >Read about the official register</a
+          >
+          or
+          <a
+            href="https://opendata.geoportal.gov.pl/prng/PRNG_MIEJSCOWOSCI_GML.zip"
+            >download the source GML archive</a
+          >.
+        </p>
+        <h3>Coordinates and IDs</h3>
+        <p>
+          Coordinates use WGS 84 and describe representative points for
+          localities. They do not describe boundaries or street addresses.
+        </p>
+        <p>
+          The <code>id</code> field contains the official PRNG record ID.
+          Sorting or filtering does not change it. GUGiK can change or remove
+          source records.
+        </p>
+        <h3>Data updates</h3>
+        <p>
+          The source export date shows the date of the published dataset. The
+          check date shows when the upstream source was last checked
+          successfully. A check does not mean the records have changed. Updates
+          are published after validation.
+        </p>
+        <p id="upstream-note"></p>
+        <h3>File formats</h3>
+        <p>
+          JSON and GeoJSON retain nested values. CSV, TSV, and XLSX store arrays
+          and objects as JSON text. CSV and TSV protect text cells that begin
+          with spreadsheet formula characters. GeoJSON always includes point
+          coordinates, even if you do not select latitude and longitude as
+          columns.
+        </p>
+        <h3>Data snapshots</h3>
+        <p>
+          The latest 30 changed snapshots are available as compressed JSON with
+          source metadata.
+        </p>
+        <ul id="snapshot-list"></ul>
+        <p>
+          See the <a href="#/license">license and attribution</a> before you
+          share the data.
+        </p>
+      </section>
+
+      <section
+        id="license"
+        class="document-page"
+        data-page="license"
+        aria-labelledby="license-title"
+        hidden
+      >
+        <h2 id="license-title" tabindex="-1">License and attribution</h2>
+        <p>
+          The dataset and this project use the
+          <a href="https://creativecommons.org/licenses/by/4.0/"
+            >Creative Commons Attribution 4.0 license (CC BY 4.0)</a
+          >. You can use and share them, including for commercial purposes,
+          under the license terms.
+        </p>
+        <h3>Data attribution</h3>
+        <p>
+          Keep this attribution when you use or share the data. Include a link
+          to the license and indicate any changes you make.
+        </p>
+        <blockquote>
+          Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0.
+          Converted by Polish geonames.
+        </blockquote>
+        <p>
+          <a
+            id="attribution-download"
+            href="./data/downloads/SOURCE.txt"
+            download
+            >Download the source and attribution note</a
+          >. It includes the source export date for the current dataset.
+        </p>
+        <h3>Map</h3>
+        <p>
+          Map tiles and map data:
+          <a href="https://www.openstreetmap.org/copyright"
+            >© OpenStreetMap contributors</a
+          >. The map background has its own attribution; downloaded locality
+          data comes from PRNG.
+        </p>
+        <p>
+          See the <a href="#/source">data source page</a> for coverage,
+          coordinates, and update details, or
+          <a href="https://github.com/mbroton/polish-geonames"
+            >view the project on GitHub</a
+          >.
+        </p>
+      </section>
     </main>
     <noscript
       ><p class="notice">
-        Enable JavaScript for the custom builder.
+        Enable JavaScript for the custom builder, or
         <a href="./data/downloads/cities-villages.json.gz"
-          >Download cities and villages as compressed JSON</a
-        >
-        or use the
-        <a href="https://github.com/mbroton/polish-geonames/releases"
-          >earlier releases</a
+          >download cities and villages as compressed JSON</a
         >.
       </p></noscript
     >
+    <footer class="site-footer">
+      <p>Built by <a href="https://github.com/mbroton">mbroton</a>.</p>
+      <nav aria-label="Footer navigation">
+        <a href="#/source" data-route="source">Data source</a>
+        <a href="#/license" data-route="license">License</a>
+        <a href="https://github.com/mbroton/polish-geonames"
+          >Open source on GitHub</a
+        >
+      </nav>
+    </footer>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

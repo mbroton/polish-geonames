@@ -25,7 +25,7 @@ test("builder starts from all types, filters names without accents, and resets",
   expect(await page.locator("input[name=type]:not(:checked)").count()).toBe(0);
   await page.locator("#search").fill("malachow");
   await expect(page.locator("#loading")).toHaveText("Selection ready");
-  await page.getByRole("tab", { name: "Table", exact: true }).click();
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
   await expect(page.locator("#preview-table")).toContainText("76566");
   await expect(page.locator("#preview-table")).toContainText("Małachów");
   await page.locator("[data-types=none]").click();
@@ -40,12 +40,16 @@ test("custom download uses the selected fields in all five formats", async ({
   page,
 }) => {
   await page.locator("#search").fill("malachow");
-  await page.getByRole("tab", { name: "Table", exact: true }).click();
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
   await expect(page.locator("#preview-table")).toContainText("76566");
+  await page.getByRole("button", { name: /^Columns/ }).click();
   await page.locator("[data-fields=none]").click();
   await expect(page.locator("#download-custom")).toBeDisabled();
   await page.locator("input[name=field][value=id]").check();
   await page.locator("input[name=field][value=name]").check();
+  await expect(page.locator("#preview-table th")).toHaveText(["id", "name"]);
+  await page.getByRole("button", { name: /^Columns/ }).click();
+  await page.getByRole("tab", { name: "Map", exact: true }).click();
   for (const format of ["json", "csv", "tsv", "geojson", "xlsx"]) {
     await page.locator("#format").selectOption(format);
     await expect(page.locator("#download-custom")).toBeEnabled();
@@ -84,8 +88,9 @@ test("extra source fields load on demand and preserve locality codes", async ({
   page,
 }) => {
   await page.locator("#search").fill("malachow");
-  await page.getByRole("tab", { name: "Table", exact: true }).click();
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
   await expect(page.locator("#preview-table")).toContainText("76566");
+  await page.getByRole("button", { name: /^Columns/ }).click();
   await page.locator(".advanced-fields summary").click();
   await page.locator("input[value=locality_code]").check();
   await expect(page.locator("#preview-table")).toContainText("0244340");
@@ -136,6 +141,7 @@ test("Home shows all localities and navigation preserves the custom selection", 
   await expect(page.locator("#loading")).toHaveText("Selection ready");
   await page.locator("#search").fill("malachow");
   await page.locator("[data-types=none]").click();
+  await page.getByRole("button", { name: /^Columns/ }).click();
   await page.locator("input[name=field][value=lat]").uncheck();
   await page.locator("#format").selectOption("csv");
   await expect(page.locator("#match-count")).toHaveText("0");
@@ -216,19 +222,84 @@ test("map renders points and does not change the data selection when moved", asy
   }).toPass({ timeout: 30_000 });
 });
 
-test("mobile layout fits the screen and supports keyboard preview tabs", async ({
+test("mobile tabs keep Map / Preview separate from Table / Output", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: /^Columns/ }).click();
+  await page.locator(".advanced-fields summary").click();
   expect(
     await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
+      () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
   await page.getByRole("tab", { name: "Map", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(
-    page.getByRole("tab", { name: "Table", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByRole("tab", { name: "Preview", exact: true }),
+  ).toBeFocused();
   await expect(page.locator("#table-panel")).toBeVisible();
+  await page.getByRole("tab", { name: "Table", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page.getByRole("tab", { name: "Output", exact: true }),
+  ).toBeFocused();
+  await expect(page.locator("#output-panel")).toBeVisible();
+  await expect(page.locator("#table-panel")).toBeHidden();
+  await expect(
+    page.getByRole("tab", { name: "Preview", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "Map", exact: true }).click();
+  await expect(page.locator("#output-panel")).toBeHidden();
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.locator("#output-panel")).toBeVisible();
+  await page.getByRole("tab", { name: "Output", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("#table-panel")).toBeVisible();
+});
+
+test("footer pages explain the source and license without losing the selection", async ({
+  page,
+}) => {
+  await page.locator("#search").fill("malachow");
+  await page.locator("#format").selectOption("csv");
+  const footer = page.getByRole("contentinfo");
+  await footer.getByRole("link", { name: "Data source", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Data source", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("#source")).toContainText("WGS 84");
+  await footer.getByRole("link", { name: "License", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "License and attribution" }),
+  ).toBeVisible();
+  const pending = page.waitForEvent("download");
+  await page
+    .getByRole("link", { name: "Download the source and attribution note" })
+    .click();
+  const download = await pending;
+  const note = await readFile(await download.path(), "utf8");
+  expect(note).toContain("GUGiK");
+  expect(note).toContain("https://creativecommons.org/licenses/by/4.0/");
+  await page.goBack();
+  await expect(page.locator("#source")).toBeVisible();
+  await page.goBack();
+  await expect(page.locator("#search")).toHaveValue("malachow");
+  await expect(page.locator("#format")).toHaveValue("csv");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ["source", "license"]) {
+    await page.goto(`./#/${route}`);
+    await page.reload();
+    await expect(page.locator(`[data-page="${route}"]`)).toBeVisible();
+    await expect(footer.locator(`[data-route="${route}"]`)).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
 });

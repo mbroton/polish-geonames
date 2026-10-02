@@ -11,10 +11,12 @@ Download Polish cities, villages, and other localities with official PRNG IDs, a
 The top menu has three views:
 
 - **Home:** a brief introduction and a dot map of the full register.
-- **Map:** place filters, field selection, previews, and custom exports.
+- **Map:** place filters and a map, plus a Preview view with Table and Output tabs. Use Columns beside the format and download controls to select the fields for your file.
 - **Download:** prepared datasets in all five formats.
 
 Switching views keeps the custom selection. Direct links such as `#/map` and `#/download` also work on GitHub Pages. The home map always shows all records, independent of the custom filters.
+
+The footer links to separate Data source and License pages and credits the website author.
 
 There are two separate download paths:
 

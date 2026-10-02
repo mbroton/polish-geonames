@@ -38,14 +38,11 @@ let sequence = 0;
 const waiting = new Map();
 
 function showPage(focus = false) {
-  if (location.hash === "#about") {
-    $("#about").open = true;
-    $("#about").scrollIntoView();
-    return;
-  }
   if (location.hash === "#main-content") return;
   const route = location.hash.replace(/^#\/?/, "");
-  currentPage = ["map", "download"].includes(route) ? route : "home";
+  currentPage = ["map", "download", "source", "license"].includes(route)
+    ? route
+    : "home";
   for (const page of document.querySelectorAll("[data-page]")) {
     page.hidden = page.dataset.page !== currentPage;
   }
@@ -54,7 +51,7 @@ function showPage(focus = false) {
       link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   }
-  document.title = `${{ home: "Home", map: "Map", download: "Download" }[currentPage]} — Polish geonames`;
+  document.title = `${{ home: "Home", map: "Map", download: "Download", source: "Data source", license: "License" }[currentPage]} — Polish geonames`;
   mapVisible =
     currentPage === "map" &&
     $("#tab-map").getAttribute("aria-selected") === "true";
@@ -243,7 +240,7 @@ function updateDownloadState() {
   const selected = fields();
   const format = $("#format").value;
   const count = latest?.count || 0;
-  $("#fields-summary").textContent = `${selected.length} selected`;
+  $("#fields-summary").textContent = `(${selected.length})`;
   const typeCount = filter().types.length;
   $("#types-summary").textContent =
     typeCount === Object.keys(manifest.types).length
@@ -257,8 +254,8 @@ function updateDownloadState() {
     ),
   );
   $("#export-summary").textContent = !selected.length
-    ? "Select at least one field."
-    : `${selected.length} fields selected`;
+    ? "Select at least one column."
+    : `${selected.length} columns selected`;
   $("#format-note").textContent = {
     json: "A JSON array of the selected fields.",
     csv: "Comma-separated values. Nested values use JSON text.",
@@ -568,13 +565,17 @@ async function updateMap() {
 }
 
 function activateTab(button) {
-  for (const tab of document.querySelectorAll("[role=tab]")) {
+  for (const tab of button
+    .closest("[role=tablist]")
+    .querySelectorAll("[role=tab]")) {
     const active = tab === button;
     tab.setAttribute("aria-selected", String(active));
     tab.tabIndex = active ? 0 : -1;
     $(`#${tab.getAttribute("aria-controls")}`).hidden = !active;
   }
-  mapVisible = currentPage === "map" && button.id === "tab-map";
+  mapVisible =
+    currentPage === "map" &&
+    $("#tab-map").getAttribute("aria-selected") === "true";
   if (mapVisible) revealMap();
 }
 
@@ -594,13 +595,22 @@ function installEvents() {
     searchTimer = setTimeout(applyFilters, 180);
   });
   $("#filters").addEventListener("click", (event) => {
-    const { types, fields: action } = event.target.dataset;
+    const { types } = event.target.dataset;
     if (types) {
       document.querySelectorAll("input[name=type]").forEach((input) => {
         input.checked = types === "all";
       });
       applyFilters();
     }
+  });
+  $("#toggle-columns").addEventListener("click", () => {
+    const panel = $("#export-fields");
+    panel.hidden = !panel.hidden;
+    $("#toggle-columns").setAttribute("aria-expanded", String(!panel.hidden));
+  });
+  $("#export-fields").addEventListener("change", applyFilters);
+  $("#export-fields").addEventListener("click", (event) => {
+    const action = event.target.dataset.fields;
     if (action) {
       document.querySelectorAll("input[name=field]").forEach((input) => {
         input.checked =
@@ -625,7 +635,9 @@ function installEvents() {
   for (const tab of document.querySelectorAll("[role=tab]")) {
     tab.addEventListener("click", () => activateTab(tab));
     tab.addEventListener("keydown", (event) => {
-      const tabs = [...document.querySelectorAll("[role=tab]")];
+      const tabs = [
+        ...tab.closest("[role=tablist]").querySelectorAll("[role=tab]"),
+      ];
       const offset =
         event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
       if (offset) {
@@ -669,9 +681,7 @@ async function start() {
       cache: "no-cache",
     });
     if (!response.ok)
-      throw new Error(
-        "The dataset is unavailable. Please try again later or use the earlier GitHub releases.",
-      );
+      throw new Error("The dataset is unavailable. Please try again later.");
     manifest = await response.json();
     if (!manifest.downloads)
       throw new Error(
@@ -688,8 +698,6 @@ async function start() {
       );
     $("#upstream-note").textContent =
       `Latest checked upstream export: ${date(manifest.upstream_export)}. Published snapshot: ${manifest.version}.`;
-    for (const id of ["source-note-link", "builder-source-link"])
-      $(`#${id}`).href = new URL("downloads/SOURCE.txt", base);
     for (const snapshot of manifest.history) {
       const li = document.createElement("li");
       const link = document.createElement("a");
@@ -763,6 +771,8 @@ async function start() {
       "All provinces",
     );
     $("#filter-controls").disabled = false;
+    $("#export-fields").disabled = false;
+    $("#toggle-columns").disabled = false;
     $("#reset-filters").disabled = false;
     installEvents();
     await applyFilters();
