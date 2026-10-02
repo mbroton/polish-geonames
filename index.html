@@ -8,17 +8,17 @@
       content="Download Polish localities from PRNG. Filter places, select fields, and export JSON, CSV, TSV, GeoJSON, or XLSX."
     />
     <meta name="theme-color" content="#ffffff" />
-    <title>Home — Polish geonames</title>
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>Polish Geonames — Map &amp; data downloads</title>
+    <link rel="icon" href="./favicon.svg?v=2" type="image/svg+xml" />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
-      <h1>Polish geonames</h1>
+      <h1>Polish Geonames</h1>
       <nav aria-label="Main navigation">
         <a href="#/" data-route="home" aria-current="page">Home</a>
-        <a href="#/map" data-route="map">Map</a>
         <a href="#/download" data-route="download">Download</a>
+        <a href="#/about" data-route="about">About</a>
       </nav>
       <a class="github-link" href="https://github.com/mbroton/polish-geonames"
         >GitHub</a
@@ -27,16 +27,21 @@
     <main id="main-content" tabindex="-1">
       <p id="global-status" class="notice" role="status" hidden></p>
 
-      <section id="home" data-page="home" aria-labelledby="home-title">
-        <div class="home-intro">
-          <h2 id="home-title" tabindex="-1">Polish locality data</h2>
+      <section
+        id="about"
+        data-page="about"
+        aria-labelledby="about-title"
+        hidden
+      >
+        <div class="about-intro">
+          <h2 id="about-title" tabindex="-1">About Polish Geonames</h2>
           <p>
             Find and download cities, villages, and other localities from the
             official PRNG register, with coordinates and administrative
             divisions.
           </p>
           <p>
-            Use <a href="#/map">Map</a> to select places and fields for your own
+            Use <a href="#/">Home</a> to select places and fields for your own
             file, or <a href="#/download">Download</a> for prepared datasets.
             Available formats: JSON, CSV, TSV, GeoJSON, and XLSX.
           </p>
@@ -68,7 +73,7 @@
             <h2 id="download-title" tabindex="-1">Prepared downloads</h2>
             <p>
               Choose a complete dataset and file format. For a custom selection,
-              use <a href="#/map">Map</a>.
+              use <a href="#/">Home</a>.
             </p>
           </div>
           <a href="#/license">Source attribution</a>
@@ -86,12 +91,7 @@
         </table>
       </section>
 
-      <section
-        id="builder"
-        data-page="map"
-        aria-labelledby="builder-title"
-        hidden
-      >
+      <section id="builder" data-page="home" aria-labelledby="builder-title">
         <div class="section-heading">
           <div>
             <h2 id="builder-title" tabindex="-1">Map and custom download</h2>

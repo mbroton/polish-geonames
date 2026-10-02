@@ -10,11 +10,11 @@ Download Polish cities, villages, and other localities with official PRNG IDs, a
 
 The top menu has three views:
 
-- **Home:** a brief introduction and a dot map of the full register.
-- **Map:** place filters and a map, plus a Preview view with Table and Output tabs. Use Columns beside the format and download controls to select the fields for your file.
+- **Home:** the map and custom download builder. Filter places, inspect the Table or Output preview, and choose Columns and a file format for your download.
 - **Download:** prepared datasets in all five formats.
+- **About:** a brief introduction and a dot map of the full register.
 
-Switching views keeps the custom selection. Direct links such as `#/map` and `#/download` also work on GitHub Pages. The home map always shows all records, independent of the custom filters.
+The website opens directly on the map. Switching views keeps the custom selection. Direct links such as `#/about` and `#/download` work on GitHub Pages; existing `#/map` links still open the builder. The About overview always shows all records, independent of the custom filters.
 
 The footer shows the locality count and an “Up to date as of” date from the last successful source check, alongside the source, license, GitHub, and author links. The Data source page gives the source export date and snapshot details.
 
@@ -46,7 +46,7 @@ Official PRNG locality register
 
 The custom builder starts with **all locality types**. Filter by name, type, province, county, commune, or name status. Select basic or extra source fields. The map shows the same selection as the download; moving the map does not change the selection.
 
-On the Map page, place filters sit beside the results. Columns, format, and download controls sit below the map or preview. On phones, expand the Filters row to change the selection; the row shows how many filters are active.
+On the Home page, place filters sit beside the results. Columns, format, and download controls sit below the map or preview. On phones, expand the Filters row to change the selection; the row shows how many filters are active.
 
 Coordinates describe representative points, not boundaries or street addresses. See the [field and format reference](docs/DATA.md) for exact output rules.
 

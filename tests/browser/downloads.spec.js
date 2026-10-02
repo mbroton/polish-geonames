@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
       ),
     }),
   );
-  await page.goto("./#/map");
+  await page.goto("./");
   await expect(page.locator("#loading")).toHaveText("Selection ready");
 });
 
@@ -124,7 +124,7 @@ test("ready-made downloads are independent of custom filters and decompress corr
   expect(rows.find((row) => row.id === 76566).name).toBe("Małachów");
 });
 
-test("Home shows all localities and navigation preserves the custom selection", async ({
+test("Home opens the builder and About preserves the full overview and selection", async ({
   page,
 }) => {
   await page.goto("./");
@@ -132,9 +132,14 @@ test("Home shows all localities and navigation preserves the custom selection", 
   await expect(
     navigation.getByRole("link", { name: "Home", exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  await expect(page.locator("#home")).toBeVisible();
-  await expect(page.locator("#builder")).toBeHidden();
+  await expect(page).toHaveTitle("Polish Geonames — Map & data downloads");
+  await expect(page.locator("#builder")).toBeVisible();
+  await expect(page.locator("#about")).toBeHidden();
   await expect(page.locator("#downloads")).toBeHidden();
+  await navigation.getByRole("link", { name: "About", exact: true }).click();
+  await expect(page).toHaveTitle("About — Polish Geonames");
+  await expect(page.locator("#about")).toBeVisible();
+  await expect(page.locator("#builder")).toBeHidden();
   await expect(page.locator("#overview-map")).toHaveAttribute(
     "aria-busy",
     "false",
@@ -144,7 +149,7 @@ test("Home shows all localities and navigation preserves the custom selection", 
     .evaluate((canvas) => canvas.toDataURL());
   const caption = await page.locator("#overview-caption").textContent();
 
-  await navigation.getByRole("link", { name: "Map", exact: true }).click();
+  await navigation.getByRole("link", { name: "Home", exact: true }).click();
   await expect(page.locator("#loading")).toHaveText("Selection ready");
   await page.locator("#search").fill("malachow");
   await page.locator("[data-types=none]").click();
@@ -163,7 +168,7 @@ test("Home shows all localities and navigation preserves the custom selection", 
   await expect(page.locator("input[name=field][value=lat]")).not.toBeChecked();
   await expect(page.locator("#match-count")).toHaveText("0");
   await page.goBack();
-  await expect(page.locator("#home")).toBeVisible();
+  await expect(page.locator("#about")).toBeVisible();
   await expect(page.locator("#overview-caption")).toHaveText(caption);
   expect(
     await page
@@ -189,9 +194,9 @@ test("direct Download links survive a reload and all pages fit a phone", async (
     "aria-busy",
     "false",
   );
-  await expect(page.locator("#home")).toBeHidden();
+  await expect(page.locator("#about")).toBeHidden();
   await expect(page.locator("#builder")).toBeHidden();
-  for (const name of ["Download", "Home", "Map"]) {
+  for (const name of ["Download", "Home", "About"]) {
     await navigation.getByRole("link", { name, exact: true }).click();
     await expect(
       navigation.getByRole("link", { name, exact: true }),
@@ -202,6 +207,28 @@ test("direct Download links survive a reload and all pages fit a phone", async (
       ),
     ).toBe(true);
   }
+});
+
+test("direct About and existing Map links survive a reload", async ({
+  page,
+}) => {
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await page.goto("./#/about");
+  await page.reload();
+  await expect(page.locator("#about")).toBeVisible();
+  await expect(page).toHaveTitle("About — Polish Geonames");
+  await expect(
+    navigation.getByRole("link", { name: "About", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await page.goto("./#/map");
+  await page.reload();
+  await expect(page.locator("#loading")).toHaveText("Selection ready");
+  await expect(page.locator("#builder")).toBeVisible();
+  await expect(page).toHaveTitle("Polish Geonames — Map & data downloads");
+  await expect(
+    navigation.getByRole("link", { name: "Home", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(page.locator("#map")).toHaveAttribute("aria-busy", "false");
 });
 
 test("map renders points and does not change the data selection when moved", async ({

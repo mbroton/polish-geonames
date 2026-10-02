@@ -40,7 +40,7 @@ const waiting = new Map();
 function showPage(focus = false) {
   if (location.hash === "#main-content") return;
   const route = location.hash.replace(/^#\/?/, "");
-  currentPage = ["map", "download", "source", "license"].includes(route)
+  currentPage = ["about", "download", "source", "license"].includes(route)
     ? route
     : "home";
   for (const page of document.querySelectorAll("[data-page]")) {
@@ -51,9 +51,12 @@ function showPage(focus = false) {
       link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   }
-  document.title = `${{ home: "Home", map: "Map", download: "Download", source: "Data source", license: "License" }[currentPage]} — Polish geonames`;
+  document.title =
+    currentPage === "home"
+      ? "Polish Geonames — Map & data downloads"
+      : `${{ about: "About", download: "Download", source: "Data source", license: "License" }[currentPage]} — Polish Geonames`;
   mapVisible =
-    currentPage === "map" &&
+    currentPage === "home" &&
     $("#tab-map").getAttribute("aria-selected") === "true";
   if (mapVisible) revealMap();
   if (focus) {
@@ -82,7 +85,7 @@ function drawOverview(points) {
   }
   canvas.setAttribute("aria-busy", "false");
   $("#overview-caption").textContent =
-    `${number(points.length / 2)} localities. Each dot is a source record. The home map always shows the full register.`;
+    `${number(points.length / 2)} localities. Each dot is a source record. This overview always shows the full register.`;
 }
 
 async function revealMap() {
@@ -585,7 +588,7 @@ function activateTab(button) {
     $(`#${tab.getAttribute("aria-controls")}`).hidden = !active;
   }
   mapVisible =
-    currentPage === "map" &&
+    currentPage === "home" &&
     $("#tab-map").getAttribute("aria-selected") === "true";
   if (mapVisible) revealMap();
 }

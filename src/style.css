@@ -165,15 +165,15 @@ select {
 [data-page] {
   padding-top: 24px;
 }
-.home-intro {
+.about-intro {
   max-width: 780px;
   line-height: 1.65;
 }
-.home-intro h2 {
+.about-intro h2 {
   font-size: 22px;
   margin-bottom: 8px;
 }
-.home-intro p + p {
+.about-intro p + p {
   margin-top: 8px;
 }
 .overview-map {
