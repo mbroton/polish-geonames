@@ -135,6 +135,30 @@ select {
   min-height: 58px;
   border-bottom: 1px solid var(--line);
 }
+.icon {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-right: 6px;
+  vertical-align: -0.18em;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.github-icon {
+  color: #24292f;
+}
+.site-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.brand-flag {
+  width: 24px;
+  height: 15px;
+  flex-shrink: 0;
+  outline: 1px solid #d7dce1;
+}
 .site-header > a {
   margin-left: auto;
   font-size: 13px;
@@ -490,6 +514,9 @@ summary span {
   gap: 4px;
 }
 .preview-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   border-bottom: 2px solid transparent;
   border-radius: 0;
@@ -511,6 +538,9 @@ summary span {
   border-bottom: 1px solid var(--line);
 }
 .preview-mode-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 3px 12px;
   min-height: 28px;
   font-size: 12px;
@@ -767,7 +797,7 @@ code {
     width: 100px;
   }
   .downloads-table td:last-child {
-    width: 85px;
+    width: 110px;
   }
   .downloads-table select {
     font-size: 12px;
@@ -835,6 +865,28 @@ code {
   }
   #loading {
     max-width: 140px;
+  }
+}
+@media (max-width: 400px) {
+  .export-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #download-custom {
+    grid-column: 1 / -1;
+  }
+  .preview-heading {
+    gap: 8px;
+    padding-inline: 8px;
+  }
+  .preview-tabs button {
+    padding-inline: 6px;
+  }
+  .selection-summary > strong {
+    font-size: 12px;
+  }
+  .downloads-table td:nth-child(3) {
+    width: 90px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

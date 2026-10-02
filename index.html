@@ -14,13 +14,37 @@
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
-      <h1>Polish Geonames</h1>
+      <h1>
+        <svg
+          class="brand-flag"
+          viewBox="0 0 32 20"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path fill="#fff" d="M0 0h32v10H0z" />
+          <path fill="#dc143c" d="M0 10h32v10H0z" /></svg
+        >Polish Geonames
+      </h1>
       <nav aria-label="Main navigation">
-        <a href="#/" data-route="home" aria-current="page">Map</a>
-        <a href="#/download" data-route="download">Download</a>
-        <a href="#/about" data-route="about">About</a>
+        <a href="#/" data-route="home" aria-current="page"
+          ><svg class="icon" aria-hidden="true" focusable="false">
+            <use href="./icons.svg#map"></use></svg
+          >Map</a
+        >
+        <a href="#/download" data-route="download"
+          ><svg class="icon" aria-hidden="true" focusable="false">
+            <use href="./icons.svg#download"></use></svg
+          >Download</a
+        >
+        <a href="#/about" data-route="about"
+          ><svg class="icon" aria-hidden="true" focusable="false">
+            <use href="./icons.svg#info"></use></svg
+          >About</a
+        >
       </nav>
       <a class="github-link" href="https://github.com/mbroton/polish-geonames"
+        ><svg class="icon github-icon" aria-hidden="true" focusable="false">
+          <use href="./icons.svg#github"></use></svg
         >GitHub</a
       >
     </header>
@@ -73,7 +97,11 @@
               choose the columns to include, and select a file format.
             </p>
           </div>
-          <a href="#/license">Source attribution</a>
+          <a href="#/license"
+            ><svg class="icon" aria-hidden="true" focusable="false">
+              <use href="./icons.svg#info"></use></svg
+            >Source attribution</a
+          >
         </div>
         <table class="downloads-table">
           <thead>
@@ -100,18 +128,26 @@
         <div class="builder-layout">
           <details id="filter-sidebar" class="filter-sidebar" open>
             <summary>
-              Filters <span id="filter-summary">All places</span>
+              <svg class="icon" aria-hidden="true" focusable="false">
+                <use href="./icons.svg#filter"></use></svg
+              >Filters <span id="filter-summary">All places</span>
             </summary>
             <form id="filters" aria-label="Custom dataset options">
               <div class="filter-heading">
-                <h3>Filters</h3>
+                <h3>
+                  <svg class="icon" aria-hidden="true" focusable="false">
+                    <use href="./icons.svg#filter"></use></svg
+                  >Filters
+                </h3>
                 <button
                   type="button"
                   id="reset-filters"
                   class="text-button"
                   disabled
                 >
-                  Reset all
+                  <svg class="icon" aria-hidden="true" focusable="false">
+                    <use href="./icons.svg#reset"></use></svg
+                  >Reset all
                 </button>
               </div>
               <fieldset id="filter-controls" disabled>
@@ -194,7 +230,9 @@
                   aria-selected="true"
                   aria-controls="map-panel"
                 >
-                  Map</button
+                  <svg class="icon" aria-hidden="true" focusable="false">
+                    <use href="./icons.svg#map"></use></svg
+                  >Map</button
                 ><button
                   id="tab-preview"
                   role="tab"
@@ -202,7 +240,9 @@
                   aria-controls="preview-panel"
                   tabindex="-1"
                 >
-                  Preview
+                  <svg class="icon" aria-hidden="true" focusable="false">
+                    <use href="./icons.svg#preview"></use></svg
+                  >Preview
                 </button>
               </div>
               <div class="selection-summary">
@@ -222,7 +262,9 @@
                 aria-label="Map of matching localities"
               ></div>
               <button id="fit-map" class="map-fit" type="button">
-                Show selection
+                <svg class="icon" aria-hidden="true" focusable="false">
+                  <use href="./icons.svg#fit"></use></svg
+                >Show selection
               </button>
               <p class="preview-note">
                 Moving the map does not change the download.
@@ -247,7 +289,9 @@
                   aria-selected="true"
                   aria-controls="table-panel"
                 >
-                  Table
+                  <svg class="icon" aria-hidden="true" focusable="false">
+                    <use href="./icons.svg#table"></use></svg
+                  >Table
                 </button>
                 <button
                   id="tab-output"
@@ -256,7 +300,9 @@
                   aria-controls="output-panel"
                   tabindex="-1"
                 >
-                  Output
+                  <svg class="icon" aria-hidden="true" focusable="false">
+                    <use href="./icons.svg#code"></use></svg
+                  >Output
                 </button>
               </div>
               <div id="table-panel" role="tabpanel" aria-labelledby="tab-table">
@@ -298,7 +344,9 @@ Select your columns to preview the output.</pre
                     aria-controls="export-fields"
                     disabled
                   >
-                    Columns <span id="fields-summary"></span>
+                    <svg class="icon" aria-hidden="true" focusable="false">
+                      <use href="./icons.svg#columns"></use></svg
+                    >Columns <span id="fields-summary"></span>
                   </button>
                   <label for="format" class="sr-only">File format</label
                   ><select id="format">
@@ -308,7 +356,9 @@ Select your columns to preview the output.</pre
                     <option value="geojson">GeoJSON</option>
                     <option value="xlsx">Excel (.xlsx)</option></select
                   ><button id="download-custom" class="button primary" disabled>
-                    Download JSON
+                    <svg class="icon" aria-hidden="true" focusable="false">
+                      <use href="./icons.svg#download"></use></svg
+                    ><span id="download-label">Download JSON</span>
                   </button>
                 </div>
               </div>
@@ -451,9 +501,16 @@ Select your columns to preview the output.</pre
           data comes from PRNG.
         </p>
         <p>
+          The GitHub icon is from
+          <a href="https://github.com/primer/octicons">Primer Octicons</a>
+          and uses the <a href="./icons-LICENSE.txt">MIT license</a>.
+        </p>
+        <p>
           See the <a href="#/source">data source page</a> for coverage,
           coordinates, and update details, or
           <a href="https://github.com/mbroton/polish-geonames"
+            ><svg class="icon github-icon" aria-hidden="true" focusable="false">
+              <use href="./icons.svg#github"></use></svg
             >view the project on GitHub</a
           >.
         </p>
@@ -477,9 +534,19 @@ Select your columns to preview the output.</pre
       </div>
       <div class="footer-links">
         <nav aria-label="Footer navigation">
-          <a href="#/source" data-route="source">Data source</a>
-          <a href="#/license" data-route="license">License</a>
+          <a href="#/source" data-route="source"
+            ><svg class="icon" aria-hidden="true" focusable="false">
+              <use href="./icons.svg#database"></use></svg
+            >Data source</a
+          >
+          <a href="#/license" data-route="license"
+            ><svg class="icon" aria-hidden="true" focusable="false">
+              <use href="./icons.svg#license"></use></svg
+            >License</a
+          >
           <a href="https://github.com/mbroton/polish-geonames"
+            ><svg class="icon github-icon" aria-hidden="true" focusable="false">
+              <use href="./icons.svg#github"></use></svg
             >Open source on GitHub</a
           >
         </nav>

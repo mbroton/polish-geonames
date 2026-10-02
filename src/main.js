@@ -168,7 +168,7 @@ function renderDownloads() {
       (download) => download.id === preset.id,
     );
     const row = document.createElement("tr");
-    row.innerHTML = `<th scope="row"><b></b><span class="file-details"></span></th><td class="file-size"></td><td><select></select></td><td><a class="button" download>Download</a></td>`;
+    row.innerHTML = `<th scope="row"><b></b><span class="file-details"></span></th><td class="file-size"></td><td><select></select></td><td><a class="button" download><svg class="icon" aria-hidden="true" focusable="false"><use href="./icons.svg#download"></use></svg><span class="download-label">Download</span></a></td>`;
     row.querySelector("b").textContent = preset.name;
     row.querySelector("th").title = preset.description;
     row.querySelector(".file-details").textContent =
@@ -205,7 +205,7 @@ function renderDownloads() {
       link.setAttribute("aria-disabled", "true");
       select.disabled = true;
       row.querySelector(".file-size").textContent = "Preparing…";
-      link.textContent = "Preparing…";
+      link.querySelector(".download-label").textContent = "Preparing…";
       try {
         const response = await fetch(new URL(file.path, base));
         const blob = await new Response(await decodedBody(response)).blob();
@@ -218,7 +218,7 @@ function renderDownloads() {
       } finally {
         select.disabled = false;
         link.removeAttribute("aria-disabled");
-        link.textContent = "Download";
+        link.querySelector(".download-label").textContent = "Download";
         update();
       }
     });
@@ -260,7 +260,7 @@ function updateDownloadState() {
     : "All places";
   $("#download-custom").disabled =
     busy || exporting || !selected.length || !count;
-  $("#download-custom").replaceChildren(
+  $("#download-label").replaceChildren(
     document.createTextNode(
       exporting ? "Preparing file…" : `Download ${format.toUpperCase()}`,
     ),
