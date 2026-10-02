@@ -25,15 +25,6 @@
       >
     </header>
     <main id="main-content" tabindex="-1">
-      <div class="dataset-info" aria-label="Dataset summary">
-        <span
-          ><strong id="total-count">—</strong> localities ·
-          <span id="type-count">—</span> types</span
-        >
-        <span>Source: <span id="source-date">Loading…</span></span>
-        <span id="check-date"></span>
-        <a href="#/source">Data source</a>
-      </div>
       <p id="global-status" class="notice" role="status" hidden></p>
 
       <section id="home" data-page="home" aria-labelledby="home-title">
@@ -105,134 +96,94 @@
           <div>
             <h2 id="builder-title" tabindex="-1">Map and custom download</h2>
             <p>
-              Start with all localities. Choose the places and fields to
-              include.
+              Filter places, check the results, and download your selection.
             </p>
           </div>
-          <button type="button" id="reset-filters" class="text-button" disabled>
-            Reset
-          </button>
         </div>
         <div class="builder-layout">
-          <form id="filters" aria-label="Custom dataset options">
-            <fieldset id="filter-controls" disabled>
-              <div class="places-controls">
-                <h3>Places</h3>
-                <label class="control-label" for="search">Name</label>
-                <input
-                  id="search"
-                  type="search"
-                  placeholder="e.g. Łódź or Nowa Wieś"
-                  autocomplete="off"
-                />
-                <details class="filter-group" open>
-                  <summary>
-                    Locality types <span id="types-summary">All types</span>
-                  </summary>
-                  <div class="check-actions">
-                    <button type="button" data-types="all" class="text-button">
-                      Select all</button
-                    ><button
-                      type="button"
-                      data-types="none"
-                      class="text-button"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <div id="type-options" class="checkbox-list"></div>
-                </details>
-                <div class="region-group">
-                  <label class="control-label" for="province"
-                    >Province <span>województwo</span></label
-                  >
-                  <select id="province">
-                    <option value="">All provinces</option>
-                  </select>
-                  <label class="control-label" for="district"
-                    >County <span>powiat</span></label
-                  >
-                  <select id="district">
-                    <option value="">All counties</option>
-                  </select>
-                  <label class="control-label" for="commune"
-                    >Commune <span>gmina</span></label
-                  >
-                  <select id="commune">
-                    <option value="">All communes</option>
-                  </select>
-                </div>
-                <label class="control-label" for="name-status"
-                  >Name status</label
-                >
-                <select id="name-status">
-                  <option value="">All name statuses</option>
-                  <option value="urzędowa">Official</option>
-                  <option value="zestandaryzowana">Standardized</option>
-                  <option value="niestandaryzowana">Non-standardized</option>
-                </select>
-              </div>
-            </fieldset>
-          </form>
-          <div class="results-panel">
-            <div class="export-panel">
-              <div class="selection-summary">
-                <strong><span id="match-count">—</span> localities</strong
-                ><span id="export-summary">Choose the data to include.</span>
-              </div>
-              <div class="export-actions">
+          <details id="filter-sidebar" class="filter-sidebar" open>
+            <summary>
+              Filters <span id="filter-summary">All places</span>
+            </summary>
+            <form id="filters" aria-label="Custom dataset options">
+              <div class="filter-heading">
+                <h3>Filters</h3>
                 <button
-                  id="toggle-columns"
                   type="button"
-                  aria-expanded="false"
-                  aria-controls="export-fields"
+                  id="reset-filters"
+                  class="text-button"
                   disabled
                 >
-                  Columns <span id="fields-summary"></span>
-                </button>
-                <label for="format" class="sr-only">File format</label
-                ><select id="format">
-                  <option value="json">JSON</option>
-                  <option value="csv">CSV</option>
-                  <option value="tsv">TSV</option>
-                  <option value="geojson">GeoJSON</option>
-                  <option value="xlsx">Excel (.xlsx)</option></select
-                ><button id="download-custom" class="button primary" disabled>
-                  Download JSON
+                  Reset all
                 </button>
               </div>
-            </div>
-            <fieldset
-              id="export-fields"
-              aria-labelledby="columns-title"
-              disabled
-              hidden
-            >
-              <legend id="columns-title">Download columns</legend>
-              <p>
-                Choose the columns for your file. The table and output preview
-                use the same selection.
-              </p>
-              <div class="check-actions">
-                <button type="button" data-fields="all" class="text-button">
-                  Select all
-                </button>
-                <button type="button" data-fields="basic" class="text-button">
-                  Basic columns
-                </button>
-                <button type="button" data-fields="none" class="text-button">
-                  Clear
-                </button>
-              </div>
-              <div id="basic-fields" class="checkbox-list"></div>
-              <details class="advanced-fields">
-                <summary>More source fields</summary>
-                <div id="extra-fields" class="checkbox-list"></div>
-              </details>
-            </fieldset>
-            <p id="format-note" class="format-note">
-              A JSON array of the selected fields.
-            </p>
+              <fieldset id="filter-controls" disabled>
+                <div class="places-controls">
+                  <label class="control-label" for="search"
+                    >Locality name</label
+                  >
+                  <input
+                    id="search"
+                    type="search"
+                    placeholder="e.g. Łódź or Nowa Wieś"
+                    autocomplete="off"
+                  />
+                  <details class="filter-group" open>
+                    <summary>
+                      Locality types <span id="types-summary">All types</span>
+                    </summary>
+                    <div class="check-actions">
+                      <button
+                        type="button"
+                        data-types="all"
+                        class="text-button"
+                      >
+                        Select all</button
+                      ><button
+                        type="button"
+                        data-types="none"
+                        class="text-button"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div id="type-options" class="checkbox-list"></div>
+                  </details>
+                  <div class="region-group">
+                    <h3>Administrative area</h3>
+                    <label class="control-label" for="province"
+                      >Province <span>województwo</span></label
+                    >
+                    <select id="province">
+                      <option value="">All provinces</option>
+                    </select>
+                    <label class="control-label" for="district"
+                      >County <span>powiat</span></label
+                    >
+                    <select id="district">
+                      <option value="">All counties</option>
+                    </select>
+                    <label class="control-label" for="commune"
+                      >Commune <span>gmina</span></label
+                    >
+                    <select id="commune">
+                      <option value="">All communes</option>
+                    </select>
+                  </div>
+                  <label class="control-label" for="name-status"
+                    >Name status</label
+                  >
+                  <select id="name-status">
+                    <option value="">All name statuses</option>
+                    <option value="urzędowa">Official</option>
+                    <option value="zestandaryzowana">Standardized</option>
+                    <option value="niestandaryzowana">Non-standardized</option>
+                  </select>
+                </div>
+              </fieldset>
+            </form>
+          </details>
+          <div class="results-panel">
             <p id="builder-error" class="notice error" role="alert" hidden></p>
             <div class="preview-heading">
               <div
@@ -257,7 +208,10 @@
                   Preview
                 </button>
               </div>
-              <span id="loading" role="status">Loading the register…</span>
+              <div class="selection-summary">
+                <strong><span id="match-count">—</span> localities</strong>
+                <span id="loading" role="status">Loading the register…</span>
+              </div>
             </div>
             <div
               id="map-panel"
@@ -333,11 +287,66 @@ Select your columns to preview the output.</pre
                 </p>
               </div>
             </div>
-            <p class="builder-footnote">
-              Include the
-              <a href="#/license">source attribution</a>
-              when you share the data.
-            </p>
+            <div class="export-controls">
+              <div class="export-panel">
+                <div class="export-description">
+                  <strong>Your download</strong>
+                  <p id="export-summary">Choose the data to include.</p>
+                </div>
+                <div class="export-actions">
+                  <button
+                    id="toggle-columns"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="export-fields"
+                    disabled
+                  >
+                    Columns <span id="fields-summary"></span>
+                  </button>
+                  <label for="format" class="sr-only">File format</label
+                  ><select id="format">
+                    <option value="json">JSON</option>
+                    <option value="csv">CSV</option>
+                    <option value="tsv">TSV</option>
+                    <option value="geojson">GeoJSON</option>
+                    <option value="xlsx">Excel (.xlsx)</option></select
+                  ><button id="download-custom" class="button primary" disabled>
+                    Download JSON
+                  </button>
+                </div>
+              </div>
+              <fieldset
+                id="export-fields"
+                aria-labelledby="columns-title"
+                disabled
+                hidden
+              >
+                <legend id="columns-title">Download columns</legend>
+                <p>
+                  Choose the columns for your file. The table and output preview
+                  use the same selection.
+                </p>
+                <div class="check-actions">
+                  <button type="button" data-fields="all" class="text-button">
+                    Select all
+                  </button>
+                  <button type="button" data-fields="basic" class="text-button">
+                    Basic columns
+                  </button>
+                  <button type="button" data-fields="none" class="text-button">
+                    Clear
+                  </button>
+                </div>
+                <div id="basic-fields" class="checkbox-list"></div>
+                <details class="advanced-fields">
+                  <summary>More source fields</summary>
+                  <div id="extra-fields" class="checkbox-list"></div>
+                </details>
+              </fieldset>
+              <p id="format-note" class="format-note">
+                A JSON array of the selected fields.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -462,14 +471,24 @@ Select your columns to preview the output.</pre
       </p></noscript
     >
     <footer class="site-footer">
-      <p>Built by <a href="https://github.com/mbroton">mbroton</a>.</p>
-      <nav aria-label="Footer navigation">
-        <a href="#/source" data-route="source">Data source</a>
-        <a href="#/license" data-route="license">License</a>
-        <a href="https://github.com/mbroton/polish-geonames"
-          >Open source on GitHub</a
+      <div class="dataset-info" aria-label="Dataset summary">
+        <span
+          ><strong id="total-count">—</strong> localities ·
+          <span id="type-count">—</span> types</span
         >
-      </nav>
+        <span>Source export: <span id="source-date">Loading…</span></span>
+        <span id="check-date"></span>
+      </div>
+      <div class="footer-links">
+        <p>Built by <a href="https://github.com/mbroton">mbroton</a>.</p>
+        <nav aria-label="Footer navigation">
+          <a href="#/source" data-route="source">Data source</a>
+          <a href="#/license" data-route="license">License</a>
+          <a href="https://github.com/mbroton/polish-geonames"
+            >Open source on GitHub</a
+          >
+        </nav>
+      </div>
     </footer>
     <script type="module" src="/src/main.js"></script>
   </body>

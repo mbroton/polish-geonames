@@ -22,6 +22,10 @@ test("builder starts from all types, filters names without accents, and resets",
   page,
 }) => {
   await expect(page.locator("#global-status")).toBeHidden();
+  const total = await page
+    .getByRole("contentinfo")
+    .locator("#total-count")
+    .textContent();
   expect(await page.locator("input[name=type]:not(:checked)").count()).toBe(0);
   await page.locator("#search").fill("malachow");
   await expect(page.locator("#loading")).toHaveText("Selection ready");
@@ -30,6 +34,9 @@ test("builder starts from all types, filters names without accents, and resets",
   await expect(page.locator("#preview-table")).toContainText("Małachów");
   await page.locator("[data-types=none]").click();
   await expect(page.locator("#match-count")).toHaveText("0");
+  await expect(
+    page.getByRole("contentinfo").locator("#total-count"),
+  ).toHaveText(total);
   await expect(page.locator("#download-custom")).toBeDisabled();
   await page.locator("#reset-filters").click();
   await expect(page.locator("#download-custom")).toBeEnabled();
@@ -256,6 +263,31 @@ test("mobile tabs keep Map / Preview separate from Table / Output", async ({
   await page.getByRole("tab", { name: "Output", exact: true }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.locator("#table-panel")).toBeVisible();
+});
+
+test("phone filters fold away while keeping the map selection", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await expect(page.locator("#loading")).toHaveText("Selection ready");
+  await expect(page.locator("#filters")).toBeHidden();
+  await expect(page.locator("#map")).toBeInViewport();
+  await page.locator("#filter-sidebar > summary").click();
+  await page.locator("#search").fill("malachow");
+  await expect(page.locator("#filter-summary")).toHaveText("1 active");
+  await page.locator("#filter-sidebar > summary").click();
+  await expect(page.locator("#filters")).toBeHidden();
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
+  await expect(page.locator("#preview-table")).toContainText("76566");
+  await expect(page.locator("#download-custom")).toBeEnabled();
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await expect(page.locator("#filters")).toBeVisible();
+  await expect(page.locator("#search")).toHaveValue("malachow");
+  await page.locator("#reset-filters").click();
+  await expect(page.locator("#search")).toHaveValue("");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("#filter-summary")).toHaveText("All places");
 });
 
 test("footer pages explain the source and license without losing the selection", async ({

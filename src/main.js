@@ -246,6 +246,17 @@ function updateDownloadState() {
     typeCount === Object.keys(manifest.types).length
       ? "All types"
       : `${typeCount} selected`;
+  const activeFilters = [
+    $("#search").value.trim(),
+    typeCount !== Object.keys(manifest.types).length,
+    $("#province").value,
+    $("#district").value,
+    $("#commune").value,
+    $("#name-status").value,
+  ].filter(Boolean).length;
+  $("#filter-summary").textContent = activeFilters
+    ? `${activeFilters} active`
+    : "All places";
   $("#download-custom").disabled =
     busy || exporting || !selected.length || !count;
   $("#download-custom").replaceChildren(
@@ -607,6 +618,7 @@ function installEvents() {
     const panel = $("#export-fields");
     panel.hidden = !panel.hidden;
     $("#toggle-columns").setAttribute("aria-expanded", String(!panel.hidden));
+    if (!panel.hidden) panel.scrollIntoView({ block: "nearest" });
   });
   $("#export-fields").addEventListener("change", applyFilters);
   $("#export-fields").addEventListener("click", (event) => {
@@ -785,6 +797,12 @@ async function start() {
   }
 }
 
+const compactLayout = matchMedia("(max-width: 760px)");
+const adaptFilters = () => {
+  $("#filter-sidebar").open = !compactLayout.matches;
+};
+compactLayout.addEventListener("change", adaptFilters);
+adaptFilters();
 window.addEventListener("hashchange", () => showPage(true));
 showPage();
 start();

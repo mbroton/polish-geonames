@@ -16,7 +16,7 @@ The top menu has three views:
 
 Switching views keeps the custom selection. Direct links such as `#/map` and `#/download` also work on GitHub Pages. The home map always shows all records, independent of the custom filters.
 
-The footer links to separate Data source and License pages and credits the website author.
+The footer shows dataset counts, the source export date, and the last successful check. It links to Data source and License pages and credits the website author.
 
 There are two separate download paths:
 
@@ -45,6 +45,8 @@ Official PRNG locality register
 | All localities    | Every source locality type, including named parts | All source attributes |
 
 The custom builder starts with **all locality types**. Filter by name, type, province, county, commune, or name status. Select basic or extra source fields. The map shows the same selection as the download; moving the map does not change the selection.
+
+On the Map page, place filters sit beside the results. Columns, format, and download controls sit below the map or preview. On phones, expand the Filters row to change the selection; the row shows how many filters are active.
 
 Coordinates describe representative points, not boundaries or street addresses. See the [field and format reference](docs/DATA.md) for exact output rules.
 
