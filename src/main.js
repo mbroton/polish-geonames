@@ -31,7 +31,6 @@ let map;
 let mapModule;
 let mapStarting = false;
 let mapVisible = false;
-let heroDrawn = false;
 let worker;
 let sequence = 0;
 const waiting = new Map();
@@ -106,18 +105,17 @@ function filter() {
 }
 
 function renderDownloads() {
-  for (const [index, preset] of PRESETS.entries()) {
+  for (const preset of PRESETS) {
     const info = manifest.downloads.find(
       (download) => download.id === preset.id,
     );
-    const card = document.createElement("article");
-    card.className = "preset-card";
-    card.innerHTML = `<div class="card-top"><span class="card-icon" aria-hidden="true">${["⌂", "⌂ ⌂", "⊹"][index]}</span><span class="card-count"></span></div><h3></h3><p></p><div class="card-download"><select></select><a download><span aria-hidden="true">↓</span></a></div><span class="file-size"></span>`;
-    card.querySelector("h3").textContent = preset.name;
-    card.querySelector("p").textContent = preset.description;
-    card.querySelector(".card-count").textContent =
-      `${number(info.count)} places`;
-    const select = card.querySelector("select");
+    const row = document.createElement("tr");
+    row.innerHTML = `<th scope="row"><b></b><span class="file-details"></span></th><td class="file-size"></td><td><select></select></td><td><a class="button" download>Download</a></td>`;
+    row.querySelector("b").textContent = preset.name;
+    row.querySelector("th").title = preset.description;
+    row.querySelector(".file-details").textContent =
+      `${number(info.count)} places · ${info.fields.length} fields`;
+    const select = row.querySelector("select");
     select.setAttribute("aria-label", `${preset.name} file format`);
     select.replaceChildren(
       ...FORMATS.map((format) =>
@@ -129,19 +127,18 @@ function renderDownloads() {
     );
     const update = () => {
       const file = info.files.find((file) => file.format === select.value);
-      const link = card.querySelector("a");
+      const link = row.querySelector("a");
       link.href = new URL(file.path, base);
       link.setAttribute(
         "aria-label",
         `Download ${preset.name} as ${select.value.toUpperCase()}`,
       );
-      card.querySelector(".file-size").textContent =
-        `${size(file.bytes)} file · ${info.fields.length} fields`;
+      row.querySelector(".file-size").textContent = size(file.bytes);
     };
     select.addEventListener("change", update);
     update();
-    $("#preset-cards").append(card);
-    card.querySelector("a").addEventListener("click", async (event) => {
+    $("#prepared-downloads").append(row);
+    row.querySelector("a").addEventListener("click", async (event) => {
       const file = info.files.find((file) => file.format === select.value);
       if (!file.compressed) return;
       event.preventDefault();
@@ -149,8 +146,8 @@ function renderDownloads() {
       if (link.getAttribute("aria-disabled") === "true") return;
       link.setAttribute("aria-disabled", "true");
       select.disabled = true;
-      card.querySelector(".file-size").textContent =
-        `Preparing your file (${size(file.transfer_bytes)} download)…`;
+      row.querySelector(".file-size").textContent = "Preparing…";
+      link.textContent = "Preparing…";
       try {
         const response = await fetch(new URL(file.path, base));
         const blob = await new Response(await decodedBody(response)).blob();
@@ -163,11 +160,12 @@ function renderDownloads() {
       } finally {
         select.disabled = false;
         link.removeAttribute("aria-disabled");
+        link.textContent = "Download";
         update();
       }
     });
   }
-  $("#preset-cards").setAttribute("aria-busy", "false");
+  $("#prepared-downloads").setAttribute("aria-busy", "false");
 }
 
 function saveBlob(blob, filename) {
@@ -195,16 +193,14 @@ function updateDownloadState() {
     busy || exporting || !selected.length || !count;
   $("#download-custom").replaceChildren(
     document.createTextNode(
-      exporting
-        ? "Preparing file…"
-        : `Download ${format === "xlsx" ? "XLSX" : format.toUpperCase()} ↓`,
+      exporting ? "Preparing file…" : `Download ${format.toUpperCase()}`,
     ),
   );
   $("#export-summary").textContent = !selected.length
     ? "Select at least one field."
-    : `${number(count)} places · ${selected.length} fields`;
+    : `${selected.length} fields selected`;
   $("#format-note").textContent = {
-    json: "A JSON array, ready for your application.",
+    json: "A JSON array of the selected fields.",
     csv: "Comma-separated values. Nested values use JSON text.",
     tsv: "Tab-separated values. Nested values use JSON text.",
     geojson: "Point features. Coordinates are always included in geometry.",
@@ -308,10 +304,6 @@ async function applyFilters() {
     $("#commune").disabled = !$("#province").value;
     renderTable();
     await renderOutput();
-    if (!heroDrawn) {
-      drawHero(response.points);
-      heroDrawn = true;
-    }
     if (mapVisible) await updateMap();
     $("#loading").textContent = response.count
       ? "Selection ready"
@@ -326,18 +318,6 @@ async function applyFilters() {
       busy = false;
       updateDownloadState();
     }
-  }
-}
-
-function drawHero(points) {
-  const canvas = $("#hero-map");
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#77975b";
-  for (let i = 0; i < points.length; i += 9) {
-    const x = 45 + (points[i] - 14.1) * 57;
-    const y = 435 - (points[i + 1] - 49) * 67;
-    ctx.fillRect(x, y, 1.4, 1.4);
   }
 }
 
@@ -412,7 +392,7 @@ async function updateMap() {
           {
             id: "background",
             type: "background",
-            paint: { "background-color": "#edf1e7" },
+            paint: { "background-color": "#f0f2f4" },
           },
           {
             id: "base",
@@ -451,7 +431,7 @@ async function updateMap() {
         source: "places",
         filter: ["has", "point_count"],
         paint: {
-          "circle-color": "#496e42",
+          "circle-color": "#245fc5",
           "circle-opacity": 0.72,
           "circle-stroke-color": "#fff",
           "circle-stroke-width": 1,
@@ -474,7 +454,7 @@ async function updateMap() {
         source: "places",
         filter: ["!", ["has", "point_count"]],
         paint: {
-          "circle-color": "#244f3b",
+          "circle-color": "#184a9e",
           "circle-radius": 4,
           "circle-stroke-color": "#fff",
           "circle-stroke-width": 1,
