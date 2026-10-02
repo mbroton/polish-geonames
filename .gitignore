@@ -1,0 +1,9 @@
+node_modules/
+dist/
+public/data/
+.cache/
+__pycache__/
+*.pyc
+.playwright-cli/
+test-results/
+playwright-report/

@@ -1,0 +1,83 @@
+name: Check PRNG and publish website
+
+on:
+  schedule:
+    - cron: "37 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-geonames
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # Set this repository variable only after reviewing and approving publication.
+    if: vars.ENABLE_WEBSITE_PUBLISH == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm ci
+      - run: npm test
+      - name: Restore the last validated snapshot
+        shell: bash
+        run: |
+          mkdir -p public/data
+          status=0
+          git ls-remote --exit-code --heads origin data > /tmp/geonames-data-ref || status=$?
+          if [ "$status" = 0 ]; then
+            git fetch --depth=1 origin data:refs/remotes/origin/data
+            git archive refs/remotes/origin/data | tar -x -C public/data
+          elif [ "$status" != 2 ]; then
+            exit "$status"
+          fi
+      - name: Check upstream and build downloads
+        run: npm run data
+      - run: npm run build
+      - name: Check the Pages size limit
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          size = sum(p.stat().st_size for p in Path('dist').rglob('*') if p.is_file())
+          if size > 900_000_000:
+              raise SystemExit('Site exceeds the 900 MB publication limit. Review snapshot retention before publishing.')
+          print(f'Site size: {size / 1_000_000:.1f} MB')
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Save validated state on the data branch
+        run: python3 scripts/save_state.py
+      - name: Record the source check
+        run: |
+          python3 - <<'PY'
+          import json, os
+          m = json.load(open('public/data/manifest.json'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
+              f.write(f"Snapshot: {m['version']}\n\nRecords: {m['count']:,}\n\nSource checked: {m['last_checked']}\n")
+          PY
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the validated website
+        id: deployment
+        uses: actions/deploy-pages@v4

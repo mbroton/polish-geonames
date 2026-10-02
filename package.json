@@ -1,0 +1,25 @@
+{
+  "name": "polish-geonames",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "data": "python3 scripts/build_data.py && node scripts/build_downloads.js",
+    "test": "python3 -B -m unittest discover -s tests && node --test tests/*.test.js",
+    "test:browser": "playwright test"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "dependencies": {
+    "maplibre-gl": "6.11.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "vite": "^7.0.0"
+  }
+}

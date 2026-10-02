@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Download Polish cities, villages, and other localities from the official PRNG register. Choose your places, fields, and file format. Free, open data."
+    />
+    <meta name="theme-color" content="#153e38" />
+    <title>Polish geonames — A place for every place</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip-link" href="#builder">Skip to custom download</a>
+    <header class="site-header wrap">
+      <a class="brand" href="#" aria-label="Polish geonames home"
+        ><span class="brand-mark" aria-hidden="true">p<span>g</span></span
+        >polish geonames<span class="brand-dot">.</span></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="#downloads">Downloads</a><a href="#builder">Build your own</a
+        ><a href="#about">About the data</a
+        ><a
+          class="github-link"
+          href="https://github.com/mbroton/polish-geonames"
+          >GitHub <span aria-hidden="true">↗</span></a
+        >
+      </nav>
+    </header>
+    <main>
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="status-dot"></span> OPEN DATA · MADE FOR POLAND
+          </p>
+          <h1 id="hero-title">A place for<br />every <em>place.</em></h1>
+          <p class="hero-description">
+            Poland’s cities, villages, and the places in between.<br
+              class="desktop-only"
+            />
+            Official data. Useful fields. Your choice of format.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#downloads"
+              >Get the data <span aria-hidden="true">↓</span></a
+            ><a class="text-link" href="#builder"
+              >Build a custom download <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <p class="hero-note">
+            Free to use with attribution. No account needed.
+          </p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-grid"></div>
+          <canvas id="hero-map" width="680" height="500"></canvas
+          ><span class="map-coordinate north">54° N</span
+          ><span class="map-coordinate south">49° N</span>
+          <div class="map-caption">
+            <span class="status-dot"></span> Every dot is a locality.
+          </div>
+          <span class="map-tag">PL / WGS 84</span>
+        </div>
+      </section>
+      <section class="stats wrap" aria-label="Dataset summary">
+        <div>
+          <span class="stat-value" id="total-count">—</span
+          ><span class="stat-label">localities in the source</span>
+        </div>
+        <div>
+          <span class="stat-value" id="type-count">—</span
+          ><span class="stat-label">locality types</span>
+        </div>
+        <div>
+          <span class="stat-value">5</span
+          ><span class="stat-label">download formats</span>
+        </div>
+        <div class="freshness">
+          <span class="stat-label">SOURCE EXPORT</span
+          ><strong id="source-date">Loading data information…</strong
+          ><span id="check-date" class="stat-label"></span>
+        </div>
+      </section>
+      <div class="wrap">
+        <p id="global-status" class="notice" role="status" hidden></p>
+      </div>
+      <section
+        class="section wrap"
+        id="downloads"
+        aria-labelledby="download-title"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01 / READY TO GO</p>
+            <h2 id="download-title">One click. All the places you need.</h2>
+          </div>
+          <p>
+            Prepared datasets for common uses.<br />Choose a file format and
+            download.
+          </p>
+        </div>
+        <div id="preset-cards" class="preset-grid" aria-busy="true"></div>
+        <p class="section-note">
+          All files use the same source snapshot.
+          <a id="source-note-link" href="#about">Source and attribution</a>
+          <span aria-hidden="true">↗</span>
+        </p>
+      </section>
+      <section
+        class="builder-section"
+        id="builder"
+        aria-labelledby="builder-title"
+      >
+        <div class="wrap">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">02 / MAKE IT YOURS</p>
+              <h2 id="builder-title">Your places. Your fields. Your file.</h2>
+            </div>
+            <p>
+              Start with the full register.<br />Include exactly what you need.
+            </p>
+          </div>
+          <div class="builder-layout">
+            <form
+              id="filters"
+              class="filter-panel"
+              aria-label="Custom dataset options"
+            >
+              <div class="panel-heading">
+                <h3>Choose your data</h3>
+                <button
+                  type="button"
+                  id="reset-filters"
+                  class="text-button"
+                  disabled
+                >
+                  Reset
+                </button>
+              </div>
+              <fieldset id="filter-controls" disabled>
+                <label class="control-label" for="search">Find a name</label
+                ><input
+                  id="search"
+                  type="search"
+                  placeholder="e.g. Łódź or Nowa Wieś"
+                  autocomplete="off"
+                />
+                <details class="filter-group" open>
+                  <summary>
+                    Locality types <span id="types-summary">All types</span>
+                  </summary>
+                  <div class="check-actions">
+                    <button type="button" data-types="all" class="text-button">
+                      Select all</button
+                    ><button
+                      type="button"
+                      data-types="none"
+                      class="text-button"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div id="type-options" class="checkbox-list"></div>
+                </details>
+                <div class="filter-group region-group">
+                  <h4>Region</h4>
+                  <label class="control-label" for="province"
+                    >Province <span>województwo</span></label
+                  ><select id="province">
+                    <option value="">All provinces</option></select
+                  ><label class="control-label" for="district"
+                    >County <span>powiat</span></label
+                  ><select id="district">
+                    <option value="">All counties</option></select
+                  ><label class="control-label" for="commune"
+                    >Commune <span>gmina</span></label
+                  ><select id="commune">
+                    <option value="">All communes</option>
+                  </select>
+                </div>
+                <label class="control-label" for="name-status"
+                  >Name status</label
+                ><select id="name-status">
+                  <option value="">All name statuses</option>
+                  <option value="urzędowa">Official</option>
+                  <option value="zestandaryzowana">Standardized</option>
+                  <option value="niestandaryzowana">Non-standardized</option>
+                </select>
+                <details class="filter-group" open>
+                  <summary>
+                    Export fields <span id="fields-summary"></span>
+                  </summary>
+                  <div class="check-actions">
+                    <button type="button" data-fields="all" class="text-button">
+                      Select all</button
+                    ><button
+                      type="button"
+                      data-fields="basic"
+                      class="text-button"
+                    >
+                      Basic fields</button
+                    ><button
+                      type="button"
+                      data-fields="none"
+                      class="text-button"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div id="basic-fields" class="checkbox-list"></div>
+                  <details class="advanced-fields">
+                    <summary>More source fields</summary>
+                    <div id="extra-fields" class="checkbox-list"></div>
+                  </details>
+                </details>
+              </fieldset>
+            </form>
+            <div class="results-panel">
+              <div class="results-heading">
+                <div>
+                  <span id="match-count" class="result-count">—</span
+                  ><span class="muted"> matching localities</span>
+                </div>
+                <span id="loading" class="loading-label" role="status"
+                  >Loading the register…</span
+                >
+              </div>
+              <div
+                class="preview-tabs"
+                role="tablist"
+                aria-label="Data preview"
+              >
+                <button
+                  id="tab-map"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="map-panel"
+                >
+                  Map</button
+                ><button
+                  id="tab-table"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="table-panel"
+                  tabindex="-1"
+                >
+                  Table</button
+                ><button
+                  id="tab-output"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="output-panel"
+                  tabindex="-1"
+                >
+                  Output
+                </button>
+              </div>
+              <div
+                id="map-panel"
+                class="preview-panel"
+                role="tabpanel"
+                aria-labelledby="tab-map"
+              >
+                <div
+                  id="map"
+                  aria-busy="true"
+                  aria-label="Map of matching localities"
+                ></div>
+                <p class="map-note">
+                  The map shows your selection. Moving it does not change your
+                  download.
+                </p>
+                <button id="fit-map" class="map-fit" type="button">
+                  Show selection
+                </button>
+                <p id="map-error" class="notice map-error" hidden></p>
+              </div>
+              <div
+                id="table-panel"
+                class="preview-panel"
+                role="tabpanel"
+                aria-labelledby="tab-table"
+                hidden
+              >
+                <div class="table-scroll">
+                  <table id="preview-table">
+                    <thead></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <p class="preview-note">
+                  Preview of the first 50 matching records. Your download
+                  includes every match.
+                </p>
+              </div>
+              <div
+                id="output-panel"
+                class="preview-panel"
+                role="tabpanel"
+                aria-labelledby="tab-output"
+                hidden
+              >
+                <pre id="output-preview" tabindex="0">
+Select your fields to preview the output.</pre
+                >
+                <p class="preview-note" id="output-note">
+                  Preview of the first 3 matching records.
+                </p>
+              </div>
+              <div class="export-panel">
+                <div class="export-options">
+                  <label for="format" class="control-label">File format</label
+                  ><select id="format">
+                    <option value="json">JSON</option>
+                    <option value="csv">CSV</option>
+                    <option value="tsv">TSV</option>
+                    <option value="geojson">GeoJSON</option>
+                    <option value="xlsx">Excel (.xlsx)</option>
+                  </select>
+                </div>
+                <div class="export-description">
+                  <strong id="export-summary"
+                    >Choose the data to include.</strong
+                  ><span id="format-note"
+                    >A JSON array, ready for your application.</span
+                  >
+                </div>
+                <button id="download-custom" class="button primary" disabled>
+                  Download JSON <span aria-hidden="true">↓</span>
+                </button>
+              </div>
+              <p
+                id="builder-error"
+                class="notice error"
+                role="alert"
+                hidden
+              ></p>
+              <p class="builder-footnote">
+                Your file is prepared in your browser. Include the
+                <a id="builder-source-link" href="#about">source attribution</a>
+                when you share the data.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="about"
+        class="section wrap about-section"
+        aria-labelledby="about-title"
+      >
+        <div>
+          <p class="eyebrow">03 / KNOW YOUR SOURCE</p>
+          <h2 id="about-title">Official records.<br />Open possibilities.</h2>
+          <p>
+            Data comes from Poland’s National Register of Geographical Names
+            (PRNG), maintained by GUGiK. This project makes that register easier
+            to explore and download.
+          </p>
+          <a
+            class="text-link"
+            href="https://www.geoportal.gov.pl/pl/dane/panstwowy-rejestr-nazw-geograficznych-prng/"
+            >Visit the official source <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <div class="about-details">
+          <details open>
+            <summary>What is included?</summary>
+            <p>
+              The full locality register: cities, villages, settlements,
+              hamlets, and named parts of localities. Source name statuses are
+              preserved. Coordinates refer to representative points, not
+              locality boundaries or street addresses.
+            </p>
+          </details>
+          <details>
+            <summary>How current is the data?</summary>
+            <p>
+              Each snapshot shows the actual source export date and the last
+              successful check. Data updates are published after validation. A
+              new check does not mean the source has changed.
+            </p>
+            <p id="upstream-note"></p>
+          </details>
+          <details>
+            <summary>What changed about IDs?</summary>
+            <p>
+              The <code>id</code> field now contains the official PRNG record
+              ID. It remains the same when you sort or filter records. Releases
+              through v0.4.0 used row numbers; those old IDs cannot be used to
+              join new data. Source records can still be changed or removed by
+              GUGiK.
+            </p>
+          </details>
+          <details>
+            <summary>License and attribution</summary>
+            <p>
+              Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG),
+              <a href="https://creativecommons.org/licenses/by/4.0/"
+                >CC BY 4.0</a
+              >. Converted by Polish geonames. Keep this attribution when you
+              use or share the data.
+            </p>
+            <p>
+              CSV and TSV protect text cells that begin with spreadsheet formula
+              characters. Arrays and objects are stored as JSON text in CSV,
+              TSV, and XLSX. Use JSON or GeoJSON to retain nested values.
+            </p>
+          </details>
+          <details>
+            <summary>Previous snapshots</summary>
+            <p>
+              The latest 30 changed snapshots are kept here as compressed JSON
+              with source metadata. Each file keeps its original source date.
+            </p>
+            <ul id="snapshot-list"></ul>
+            <p>
+              <a href="https://github.com/mbroton/polish-geonames/releases"
+                >Earlier annual releases ↗</a
+              >
+            </p>
+          </details>
+        </div>
+      </section>
+    </main>
+    <footer class="wrap">
+      <a class="brand" href="#"
+        >polish geonames<span class="brand-dot">.</span></a
+      >
+      <p>Made for people who need places.</p>
+      <a href="https://github.com/mbroton/polish-geonames"
+        >Open source on GitHub ↗</a
+      >
+    </footer>
+    <noscript
+      ><p class="notice">
+        Enable JavaScript for the custom builder.
+        <a href="./data/downloads/cities-villages.json.gz"
+          >Download cities and villages as compressed JSON</a
+        >
+        or browse the
+        <a href="https://github.com/mbroton/polish-geonames/releases"
+          >earlier releases</a
+        >.
+      </p></noscript
+    >
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
