@@ -1,0 +1,38 @@
+name: Check website and data tools
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [data]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    env:
+      SITE_URL: https://miejsca.app
+      SITE_BASE_PATH: /
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: npm ci
+      - run: npm test
+      - name: Build a fixed test dataset
+        run: python3 -B scripts/build_fixture.py && node scripts/build_downloads.js
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results/
+          retention-days: 7

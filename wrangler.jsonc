@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "miejsca",
+  "account_id": "091f31e05d55ac7db89769063261b9ff",
+  "compatibility_date": "2026-10-03",
+  "workers_dev": false,
+  "preview_urls": false,
+  "build": {
+    "command": "npm run build"
+  },
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "force-trailing-slash"
+  },
+  "routes": [
+    { "pattern": "miejsca.app", "custom_domain": true }
+  ]
+}

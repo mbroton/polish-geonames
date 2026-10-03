@@ -1,153 +1,162 @@
+"""Convert the official PRNG locality export into records with source IDs."""
+
+import argparse
 import csv
 import json
+import math
+import re
 import sys
 import xml.etree.ElementTree as ET
-from typing import Callable
 
-_PREFIX = (
-    "{urn:gugik:specyfikacje:gmlas:panstwowyRejestrNazwGeograficznych:1.0}"
-)
-_RECORD_TAG = f"{_PREFIX}NG_NazwaGeograficznaRP"
-_TRANSLATIONS = {
-    "nazwaGlowna": "name",
-    "rodzajObiektu": "type",
-    "wojewodztwo": "province",
-    "powiat": "district",
-    "gmina": "commune",
-    "wspolrzedneGeograficzne": "coords",
+PREFIX = "{urn:gugik:specyfikacje:gmlas:panstwowyRejestrNazwGeograficznych:1.0}"
+RECORD_TAG = f"{PREFIX}NG_NazwaGeograficznaRP"
+BASIC_FIELDS = ["id", "name", "type", "province", "district", "commune", "lat", "lng"]
+CORE_FIELDS = BASIC_FIELDS + ["status", "commune_code"]
+SCALAR_FIELDS = {
+    "identyfikatorPRNG": "id", "nazwaGlowna": "name",
+    "rodzajObiektu": "type", "statusNazwy": "status", "idiip": "iip_id",
+    "identyfikatorZewnetrzny": "locality_code",
+    "nazwaMiejscowosciNadrzednej": "parent_name",
+    "identyfikatorMiejscowosciNadrzednej": "parent_code",
+    "elementRozrozniajacy": "distinguishing_name",
+    "elementRodzajowy": "generic_term", "kategoriaObiektu": "category",
+    "wersjaObiektu": "source_version", "poczatekWersjiObiektu": "version_start",
+    "koniecWersjiObiektu": "version_end", "waznaOd": "valid_from",
+    "waznaDo": "valid_to", "dopelniacz": "genitive",
+    "przymiotnik": "adjective", "informacjeDodatkowe": "notes",
 }
-FIELDS_TRANSLATION = {f"{_PREFIX}{k}": v for k, v in _TRANSLATIONS.items()}
-_REQUIRED_FIELDS = {"name", "type", "province", "district", "commune", "coords"}
+LIST_FIELDS = {
+    "nazwaOboczna": "alternate_names", "nazwaHistoryczna": "historical_names",
+    "nazwaDodatkowa": "additional_names", "endonim": "endonyms",
+    "egzonim": "exonyms", "zrodloInformacji": "references",
+}
+REPRESENTATION_FIELDS = {
+    "rodzajReprezent": "point_type", "identyfikatorGminy": "commune_code",
+    "gmina": "commune", "powiat": "district", "wojewodztwo": "province",
+    "wspolrzedneGeograficzne": "coordinates", "wspolrzedneXY": "projected_coordinates",
+}
+NESTED_FIELDS = {
+    "nazwa": "name", "jezyk": "language", "latynizacja": "romanization",
+    "tytul": "title", "data": "date", "wydawca": "publisher",
+}
 
 
-def parse_type(value: str) -> str:
-    return "city" if value == "miasto" else "village"
+def local_name(tag):
+    return tag.rsplit("}", 1)[-1]
 
 
-def parse_commune(value: str) -> str:
-    return value.split("-gmina")[0]
-
-
-def parse_coordinates(value: str) -> list[float]:
+def parse_coordinates(value):
     try:
         lat, lng = (float(number) for number in value.split())
-    except ValueError as error:
-        raise ValueError(f"expected two numeric values, got {value!r}") from error
-
-    if not -90 <= lat <= 90 or not -180 <= lng <= 180:
-        raise ValueError(f"coordinates out of range: {value!r}")
-
-    return [lat, lng]
+    except (ValueError, AttributeError) as error:
+        raise ValueError(f"expected two numeric coordinates, got {value!r}") from error
+    if not (math.isfinite(lat) and math.isfinite(lng) and 49 <= lat <= 55 and 14 <= lng <= 24.2):
+        raise ValueError(f"coordinates outside Poland's bounding box: {value!r}")
+    return lat, lng
 
 
-FIELD_VALUE_PARSER = {
-    "type": parse_type,
-    "commune": parse_commune,
-    "coords": parse_coordinates,
-}
+def read_element(element):
+    record = {}
+    representations = []
+    for child in element:
+        name = local_name(child.tag)
+        value = child.text.strip() if child.text and child.text.strip() else None
+        if name in SCALAR_FIELDS:
+            record[SCALAR_FIELDS[name]] = value
+        elif name in LIST_FIELDS:
+            if len(child):
+                value = {NESTED_FIELDS[local_name(c.tag)]: c.text for c in child}
+            record.setdefault(LIST_FIELDS[name], []).append(value)
+        elif name == "reprezentacjaObiektu":
+            representation = {REPRESENTATION_FIELDS[local_name(c.tag)]: c.text for c in child}
+            lat, lng = parse_coordinates(representation.pop("coordinates", None))
+            representation.update(lat=lat, lng=lng)
+            representations.append(representation)
+        elif name != "geometriaObiektu":
+            raise ValueError(f"unknown source field: {name}")
+
+    for field in ("id", "name", "type", "status"):
+        if not record.get(field):
+            raise ValueError(f"missing required field: {field}")
+    raw_id = record["id"]
+    if not raw_id.isascii() or not raw_id.isdecimal() or int(raw_id) <= 0:
+        raise ValueError(f"invalid PRNG ID: {raw_id!r}")
+    record["id"] = int(raw_id)
+    # These two values retain the existing export's vocabulary.
+    record["type"] = {"miasto": "city", "wieś": "village"}.get(record["type"], record["type"])
+    if not representations:
+        raise ValueError("missing locality coordinates")
+    primary = next((r for r in representations if r["point_type"] == "punkt główny"), representations[0])
+    for field in ("province", "district", "commune", "commune_code", "lat", "lng"):
+        record[field] = primary.get(field)
+    if record["commune"]:
+        record["commune"] = record["commune"].split("-gmina")[0]
+    record["representations"] = representations
+    return record
 
 
-def read_element(element: ET.Element) -> dict:
-    """Read and translate the fields of one PRNG geographical-name record."""
-    member_data: dict = {"id": None}
-    for child in element.iter():
-        if child.tag in FIELDS_TRANSLATION:
-            member_data[FIELDS_TRANSLATION[child.tag]] = child.text
-    return member_data
-
-
-def validate_data(data: dict) -> None:
-    missing = sorted(field for field in _REQUIRED_FIELDS if not data.get(field))
-    if missing:
-        raise ValueError(f"missing required fields: {', '.join(missing)}")
-
-
-def transform_values(data: dict) -> dict:
-    """Transform values as defined in FIELD_VALUE_PARSER."""
-    new_data = {}
-    for key, value in data.items():
-        if key in FIELD_VALUE_PARSER:
-            value = FIELD_VALUE_PARSER[key](value)
-        new_data[key] = value
-    return new_data
-
-
-def save_as_json(data: list[dict], output_file: str) -> None:
-    with open(output_file, "w", encoding="utf-8") as file:
-        json.dump(data, file, ensure_ascii=False)
-
-
-def save_as_tsv(data: list[dict], output_file: str) -> None:
-    header = data[0].keys()
-    with open(output_file, "w", encoding="utf-8", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=header, delimiter="\t")
-        writer.writeheader()
-        writer.writerows(data)
-
-
-_EXT_TO_FUNC: dict[str, Callable[[list[dict], str], None]] = {
-    "json": save_as_json,
-    "tsv": save_as_tsv,
-}
-
-
-def parse_data(source_file: str) -> list[dict]:
-    """Parse cities and villages from a PRNG GML file without loading its XML tree."""
-    parsed_data = []
+def parse_data(source_file, all_localities=False):
+    records = []
+    ids = set()
+    # Clear featureMember wrappers as well as records to bound XML memory use.
     for _, element in ET.iterparse(source_file, events=("end",)):
-        if element.tag != _RECORD_TAG:
+        if element.tag != RECORD_TAG:
+            if local_name(element.tag) in ("featureMember", "member"):
+                element.clear()
             continue
-
-        element_data = read_element(element)
-        if element_data.get("type") not in ("wieś", "miasto"):
+        kind = element.findtext(f"{PREFIX}rodzajObiektu")
+        if not all_localities and kind not in ("miasto", "wieś"):
             element.clear()
             continue
-
         try:
-            validate_data(element_data)
-            new = transform_values(element_data)
-        except ValueError as error:
-            name = element_data.get("name", "<unnamed>")
+            record = read_element(element)
+            if record["id"] in ids:
+                raise ValueError(f"duplicate PRNG ID: {record['id']}")
+            ids.add(record["id"])
+        except (ValueError, KeyError) as error:
+            name = element.findtext(f"{PREFIX}nazwaGlowna", "<unnamed>")
             raise ValueError(f"invalid record {name!r}: {error}") from error
-
-        new["lat"], new["lng"] = new.pop("coords")
-        parsed_data.append(new)
+        records.append(record)
         element.clear()
-
-    if not parsed_data:
-        raise ValueError("no city or village records found; check that this is a PRNG GML file")
-
-    return parsed_data
+    if not records:
+        raise ValueError("no locality records found; expected a PRNG GML export")
+    return sorted(records, key=lambda r: (r["name"], r["id"]))
 
 
-def main() -> int:
-    if len(sys.argv) != 3:
-        print("Usage: python3 parser.py [XML source file] [output file json or tsv]")
-        return 1
+def tabular_value(value):
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False)
+    if isinstance(value, str) and re.match(r"\s*[=+@-]", value):
+        return "'" + value
+    return value
 
-    source_file = sys.argv[1]
-    output_file = sys.argv[2]
-    output_ext = output_file.split(".")[-1]
-    if output_ext not in _EXT_TO_FUNC:
-        print("Output file has to have json or tsv extension.")
-        return 1
 
-    print(f"Parsing {source_file!r}.")
+def main():
+    args = argparse.ArgumentParser(description=__doc__)
+    args.add_argument("source")
+    args.add_argument("output")
+    args.add_argument("--all", action="store_true", help="include all locality types and source fields")
+    options = args.parse_args()
+    extension = options.output.rsplit(".", 1)[-1]
+    if extension not in ("json", "tsv"):
+        args.error("output must have a .json or .tsv extension")
     try:
-        parsed_data = parse_data(source_file)
+        records = parse_data(options.source, all_localities=options.all)
+        fields = sorted({key for row in records for key in row}) if options.all else BASIC_FIELDS
+        with open(options.output, "w", encoding="utf-8", newline="") as file:
+            rows = [{key: row.get(key) for key in fields} for row in records]
+            if extension == "json":
+                json.dump(rows, file, ensure_ascii=False, allow_nan=False)
+            else:
+                writer = csv.DictWriter(file, fieldnames=fields, delimiter="\t")
+                writer.writeheader()
+                for row in rows:
+                    writer.writerow({k: tabular_value(v) for k, v in row.items()})
+        print(f"Saved {len(records):,} localities to {options.output}.")
+        return 0
     except (OSError, ET.ParseError, ValueError) as error:
-        print(f"Could not parse {source_file!r}: {error}", file=sys.stderr)
+        print(str(error), file=sys.stderr)
         return 1
-
-    print(f"Parsing finished. {len(parsed_data)} elements loaded.")
-    print("Sorting")
-    parsed_data.sort(key=lambda place: place["name"])
-    for index, place in enumerate(parsed_data, start=1):
-        place["id"] = index
-
-    print(f"Saving to {output_file!r}.")
-    _EXT_TO_FUNC[output_ext](parsed_data, output_file)
-    return 0
 
 
 if __name__ == "__main__":

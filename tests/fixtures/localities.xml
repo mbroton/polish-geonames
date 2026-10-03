@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gml:FeatureCollection xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:p="urn:gugik:specyfikacje:gmlas:panstwowyRejestrNazwGeograficznych:1.0">
+  <gml:featureMember><p:NG_NazwaGeograficznaRP>
+    <p:identyfikatorPRNG>76566</p:identyfikatorPRNG><p:nazwaGlowna>Małachów</p:nazwaGlowna>
+    <p:rodzajObiektu>wieś</p:rodzajObiektu><p:statusNazwy>urzędowa</p:statusNazwy>
+    <p:identyfikatorZewnetrzny>0244340</p:identyfikatorZewnetrzny>
+    <p:reprezentacjaObiektu><p:rodzajReprezent>punkt główny</p:rodzajReprezent><p:wojewodztwo>świętokrzyskie</p:wojewodztwo><p:powiat>konecki</p:powiat><p:gmina>Końskie-gmina miejsko-wiejska</p:gmina><p:identyfikatorGminy>2605033</p:identyfikatorGminy><p:wspolrzedneGeograficzne>51.224092182361815 20.2920359676266</p:wspolrzedneGeograficzne><p:wspolrzedneXY>590195.51 373835.05</p:wspolrzedneXY></p:reprezentacjaObiektu>
+    <p:nazwaOboczna>Test alternate one</p:nazwaOboczna><p:nazwaOboczna>Test alternate two</p:nazwaOboczna>
+    <p:zrodloInformacji><p:tytul>Test source</p:tytul><p:data>2026-01-01</p:data><p:wydawca>GUGiK</p:wydawca></p:zrodloInformacji>
+  </p:NG_NazwaGeograficznaRP></gml:featureMember>
+  <gml:featureMember><p:NG_NazwaGeograficznaRP>
+    <p:identyfikatorPRNG>7791</p:identyfikatorPRNG><p:nazwaGlowna>Boguszowice</p:nazwaGlowna>
+    <p:rodzajObiektu>część miasta</p:rodzajObiektu><p:statusNazwy>urzędowa</p:statusNazwy>
+    <p:nazwaMiejscowosciNadrzednej>Rybnik</p:nazwaMiejscowosciNadrzednej>
+    <p:identyfikatorMiejscowosciNadrzednej>0942765</p:identyfikatorMiejscowosciNadrzednej>
+    <p:reprezentacjaObiektu><p:rodzajReprezent>punkt główny</p:rodzajReprezent><p:wojewodztwo>śląskie</p:wojewodztwo><p:powiat>Rybnik</p:powiat><p:gmina>Rybnik-gmina miejska</p:gmina><p:identyfikatorGminy>2473011</p:identyfikatorGminy><p:wspolrzedneGeograficzne>50.063221446513 18.599764606391</p:wspolrzedneGeograficzne></p:reprezentacjaObiektu>
+  </p:NG_NazwaGeograficznaRP></gml:featureMember>
+</gml:FeatureCollection>

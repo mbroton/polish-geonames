@@ -1,0 +1,39 @@
+---
+import { translator, pagePath } from "../i18n/index.js";
+import { siteName } from "../lib/brand.js";
+const { locale } = Astro.props;
+const t = translator(locale);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const asset = (path) => `${base}${path}`;
+const url = (page) => pagePath(locale, page, base);
+---
+
+<section id="about" data-page="about" aria-labelledby="about-title">
+  <div class="about-intro">
+    <h2 id="about-title" tabindex="-1">
+      {t("About {name}", { name: siteName })}
+    </h2>
+    <p>
+      {t(
+        "Find and download cities, villages, and other localities from the official PRNG register, with coordinates and administrative divisions.",
+      )}
+    </p>
+    <p>
+      {t("Use")} <a href={url("home")}>{t("Map")}</a>{" "}
+      {t("to select places and fields for your own file, or")}{" "}
+      <a href={url("download")}>{t("Download")}</a>{" "}
+      {t(
+        "for prepared datasets. Available formats: JSON, CSV, TSV, and GeoJSON.",
+      )}
+    </p>
+  </div>
+  <figure class="overview-map">
+    <img
+      id="overview-map"
+      src={asset("data/overview.svg")}
+      width="1100"
+      height="800"
+      alt={t("Dot map of all localities in Poland")}
+    />
+  </figure>
+</section>

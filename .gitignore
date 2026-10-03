@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+public/data/
+.cache/
+__pycache__/
+*.pyc
+.playwright-cli/
+test-results/
+playwright-report/

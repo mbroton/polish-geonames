@@ -1,0 +1,28 @@
+{
+  "name": "polish-geonames",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build",
+    "deploy": "wrangler deploy",
+    "preview": "astro preview --host 127.0.0.1",
+    "data": "python3 scripts/build_data.py && node scripts/build_downloads.js",
+    "test": "python3 -B -m unittest discover -s tests && node --test tests/*.test.js",
+    "test:browser": "playwright test"
+  },
+  "engines": {
+    "node": ">=22.12",
+    "npm": ">=10.8.2"
+  },
+  "dependencies": {
+    "maplibre-gl": "6.11.2"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@playwright/test": "^1.56.0",
+    "astro": "^7.3.5",
+    "wrangler": "4.147.0"
+  }
+}

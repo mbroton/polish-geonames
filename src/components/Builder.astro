@@ -1,0 +1,348 @@
+---
+import { translator, formatters, fieldInfo, typeLabel } from "../i18n/index.js";
+import { BASIC_FIELDS } from "../data.js";
+import { manifest } from "../lib/site-data.js";
+const { locale } = Astro.props;
+const t = translator(locale);
+const { number } = formatters(locale);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const asset = (path) => `${base}${path}`;
+---
+
+<section id="builder" data-page="home" aria-label={t("Map")}>
+  <div class="builder-layout">
+    <details id="filter-sidebar" class="filter-sidebar" open>
+      <summary>
+        <svg class="icon" aria-hidden="true" focusable="false">
+          <use href={asset("icons.svg#filter")}></use>
+        </svg>
+        {t("Filters")} <span id="filter-summary">{t("All places")}</span>
+      </summary>
+      <form id="filters" aria-label={t("Custom dataset options")}>
+        <div class="filter-heading">
+          <h3>
+            <svg class="icon" aria-hidden="true" focusable="false">
+              <use href={asset("icons.svg#filter")}></use>
+            </svg>
+            {t("Filters")}
+          </h3>
+          <button type="button" id="reset-filters" class="text-button" disabled>
+            <svg class="icon" aria-hidden="true" focusable="false">
+              <use href={asset("icons.svg#reset")}></use>
+            </svg>
+            {t("Reset all")}
+          </button>
+        </div>
+        <fieldset id="filter-controls" disabled>
+          <div class="places-controls">
+            <label class="control-label" for="search">
+              {t("Locality name")}
+            </label>
+            <input
+              id="search"
+              type="search"
+              placeholder={t("e.g. Łódź or Nowa Wieś")}
+              autocomplete="off"
+            />
+            <details class="filter-group" open>
+              <summary>
+                {t("Locality types")}{" "}
+                <span id="types-summary">{t("All types")}</span>
+              </summary>
+              <div class="check-actions">
+                <button type="button" data-types="all" class="text-button">
+                  {t("Select all")}
+                </button>
+                <button type="button" data-types="none" class="text-button">
+                  {t("Clear")}
+                </button>
+              </div>
+              <div id="type-options" class="checkbox-list">
+                {Object.entries(manifest.types)
+                  .sort(([a], [b]) =>
+                    a === "city"
+                      ? -1
+                      : b === "city"
+                        ? 1
+                        : a === "village"
+                          ? -1
+                          : b === "village"
+                            ? 1
+                            : a.localeCompare(b, "pl"),
+                  )
+                  .map(([type, count]) => (
+                    <label>
+                      <input type="checkbox" name="type" value={type} checked />
+                      <span class="check-label">{typeLabel(type, locale)}</span>
+                      <span class="count">{number(count)}</span>
+                    </label>
+                  ))}
+              </div>
+            </details>
+            <div class="region-group">
+              <h3>{t("Administrative area")}</h3>
+              <label class="control-label" for="province">
+                {t("Province")} {locale === "en" && <span>województwo</span>}
+              </label>
+              <select id="province">
+                <option value="">{t("All provinces")}</option>
+              </select>
+              <label class="control-label" for="district">
+                {t("County")} {locale === "en" && <span>powiat</span>}
+              </label>
+              <select id="district">
+                <option value="">{t("All counties")}</option>
+              </select>
+              <label class="control-label" for="commune">
+                {t("Commune")} {locale === "en" && <span>gmina</span>}
+              </label>
+              <select id="commune">
+                <option value="">{t("All communes")}</option>
+              </select>
+            </div>
+            <label class="control-label" for="name-status">
+              {t("Name status")}
+            </label>
+            <select id="name-status">
+              <option value="">{t("All name statuses")}</option>
+              <option value="urzędowa">{t("Official")}</option>
+              <option value="zestandaryzowana">{t("Standardized")}</option>
+              <option value="niestandaryzowana">{t("Non-standardized")}</option>
+            </select>
+          </div>
+        </fieldset>
+      </form>
+    </details>
+    <div id="builder-results" class="results-panel" aria-busy="true">
+      <p id="builder-error" class="notice error" role="alert" hidden></p>
+      <div class="preview-heading">
+        <div
+          class="preview-tabs"
+          role="tablist"
+          aria-label={t("Selection view")}
+        >
+          <button
+            id="tab-map"
+            role="tab"
+            aria-selected="true"
+            aria-controls="map-panel"
+          >
+            <svg class="icon" aria-hidden="true" focusable="false">
+              <use href={asset("icons.svg#map")}></use>
+            </svg>
+            {t("Map")}
+          </button>
+          <button
+            id="tab-preview"
+            role="tab"
+            aria-selected="false"
+            aria-controls="preview-panel"
+            tabindex="-1"
+          >
+            <svg class="icon" aria-hidden="true" focusable="false">
+              <use href={asset("icons.svg#preview")}></use>
+            </svg>
+            {t("Preview")}
+          </button>
+        </div>
+        <div class="selection-summary">
+          <strong>
+            {t("Records")}: <span id="match-count">{t("—")}</span>
+          </strong>
+          <span id="loading" role="status" hidden>
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span id="loading-text" class="sr-only">
+              {t("Loading the register…")}
+            </span>
+          </span>
+        </div>
+      </div>
+      <div
+        id="map-panel"
+        class="preview-panel"
+        role="tabpanel"
+        aria-labelledby="tab-map"
+      >
+        <div
+          id="map"
+          aria-busy="true"
+          aria-label={t("Map of matching localities")}
+        ></div>
+        <button id="fit-map" class="map-fit" type="button">
+          <svg class="icon" aria-hidden="true" focusable="false">
+            <use href={asset("icons.svg#fit")}></use>
+          </svg>
+          {t("Show selection")}
+        </button>
+        <p id="map-error" class="notice map-error" hidden></p>
+      </div>
+      <div
+        id="preview-panel"
+        class="preview-panel"
+        role="tabpanel"
+        aria-labelledby="tab-preview"
+        hidden
+      >
+        <div class="preview-toolbar">
+          <div
+            class="preview-mode-tabs"
+            role="tablist"
+            aria-label={t("Preview format")}
+          >
+            <button
+              id="tab-table"
+              role="tab"
+              aria-selected="true"
+              aria-controls="table-panel"
+            >
+              <svg class="icon" aria-hidden="true" focusable="false">
+                <use href={asset("icons.svg#table")}></use>
+              </svg>
+              {t("Table")}
+            </button>
+            <button
+              id="tab-output"
+              role="tab"
+              aria-selected="false"
+              aria-controls="output-panel"
+              tabindex="-1"
+            >
+              <svg class="icon" aria-hidden="true" focusable="false">
+                <use href={asset("icons.svg#code")}></use>
+              </svg>
+              {t("Output")}
+            </button>
+          </div>
+          <p
+            id="preview-summary"
+            title={t("The download includes every matching record.")}
+          >
+            {t("Shown: {count}", { count: "—" })}
+          </p>
+        </div>
+        <div id="table-panel" role="tabpanel" aria-labelledby="tab-table">
+          <div class="table-scroll">
+            <table id="preview-table">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div
+          id="output-panel"
+          role="tabpanel"
+          aria-labelledby="tab-output"
+          hidden
+        >
+          <pre
+            id="output-preview"
+            tabindex="0"
+          > {t("Select your columns to preview the output.")}</pre>
+        </div>
+      </div>
+      <div class="export-controls">
+        <div class="export-panel">
+          <div class="export-description">
+            <strong>{t("Your download")}</strong>
+            <p id="export-summary">{t("Choose the data to include.")}</p>
+          </div>
+          <div class="export-actions">
+            <button
+              id="toggle-columns"
+              type="button"
+              aria-expanded="false"
+              aria-controls="export-fields"
+              disabled
+            >
+              <svg class="icon" aria-hidden="true" focusable="false">
+                <use href={asset("icons.svg#columns")}></use>
+              </svg>
+              {t("Columns")} <span id="fields-summary"></span>
+            </button>
+            <label for="format" class="sr-only">
+              {t("File format")}
+            </label>
+            <select id="format">
+              <option value="json">{t("JSON")}</option>
+              <option value="csv">{t("CSV")}</option>
+              <option value="tsv">{t("TSV")}</option>
+              <option value="geojson">{t("GeoJSON")}</option>
+            </select>
+            <button id="download-custom" class="button primary" disabled>
+              <svg class="icon" aria-hidden="true" focusable="false">
+                <use href={asset("icons.svg#download")}></use>
+              </svg>
+              <span id="download-label">{t("Download JSON")}</span>
+            </button>
+          </div>
+        </div>
+        <fieldset
+          id="export-fields"
+          aria-labelledby="columns-title"
+          disabled
+          hidden
+        >
+          <legend id="columns-title">{t("Download columns")}</legend>
+          <p>
+            {t(
+              "Choose the columns for your file. The table and output preview use the same selection.",
+            )}
+          </p>
+          <div class="check-actions">
+            <button type="button" data-fields="all" class="text-button">
+              {t("Select all")}
+            </button>
+            <button type="button" data-fields="basic" class="text-button">
+              {t("Basic columns")}
+            </button>
+            <button type="button" data-fields="none" class="text-button">
+              {t("Clear")}
+            </button>
+          </div>
+          <div id="basic-fields" class="checkbox-list">
+            {manifest.fields
+              .filter((field) => BASIC_FIELDS.includes(field))
+              .map((field) => {
+                const info = fieldInfo(field, locale);
+                return (
+                  <label title={info[1]}>
+                    <input
+                      type="checkbox"
+                      name="field"
+                      value={field}
+                      checked={BASIC_FIELDS.includes(field)}
+                    />
+                    <span class="check-label">{info[0]}</span>
+                  </label>
+                );
+              })}
+          </div>
+          <details class="advanced-fields">
+            <summary>{t("More source fields")}</summary>
+            <div id="extra-fields" class="checkbox-list">
+              {manifest.fields
+                .filter((field) => !BASIC_FIELDS.includes(field))
+                .map((field) => {
+                  const info = fieldInfo(field, locale);
+                  return (
+                    <label title={info[1]}>
+                      <input
+                        type="checkbox"
+                        name="field"
+                        value={field}
+                        checked={BASIC_FIELDS.includes(field)}
+                      />
+                      <span class="check-label">{info[0]}</span>
+                    </label>
+                  );
+                })}
+            </div>
+          </details>
+        </fieldset>
+        <p id="format-note" class="format-note">
+          {t("A JSON array of the selected fields.")}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
