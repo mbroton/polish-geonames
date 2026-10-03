@@ -1,0 +1,253 @@
+{
+  "schema_version": 2,
+  "version": "2026-09-30-cfc57a0007dd",
+  "content_hash": "cfc57a0007dd2c2d99ae1c7f9b5643e08c53ed284f179846b8fb61ee4f981169",
+  "source_export": "2026-09-30",
+  "upstream_export": "2026-09-30",
+  "last_checked": "2026-10-03T09:34:13+00:00",
+  "source_url": "https://opendata.geoportal.gov.pl/prng/PRNG_MIEJSCOWOSCI_GML.zip",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "attribution": "Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0. Converted by Polish geonames.",
+  "count": 124247,
+  "fields": [
+    "id",
+    "name",
+    "type",
+    "province",
+    "district",
+    "commune",
+    "lat",
+    "lng",
+    "additional_names",
+    "adjective",
+    "alternate_names",
+    "category",
+    "commune_code",
+    "distinguishing_name",
+    "endonyms",
+    "exonyms",
+    "generic_term",
+    "genitive",
+    "historical_names",
+    "iip_id",
+    "locality_code",
+    "notes",
+    "parent_code",
+    "parent_name",
+    "references",
+    "representations",
+    "source_version",
+    "status",
+    "valid_from",
+    "version_start"
+  ],
+  "core_fields": [
+    "id",
+    "name",
+    "type",
+    "province",
+    "district",
+    "commune",
+    "lat",
+    "lng",
+    "status",
+    "commune_code"
+  ],
+  "types": {
+    "city": 1026,
+    "część kolonii": 265,
+    "część miasta": 11129,
+    "część osady": 96,
+    "część wsi": 41924,
+    "inny obiekt": 1,
+    "kolonia": 2400,
+    "kolonia kolonii": 32,
+    "kolonia osady": 20,
+    "kolonia wsi": 3903,
+    "leśniczówka": 1109,
+    "osada": 5287,
+    "osada kolonii": 4,
+    "osada leśna": 2113,
+    "osada leśna wsi": 307,
+    "osada osady": 12,
+    "osada wsi": 685,
+    "osiedle": 5,
+    "osiedle wsi": 10,
+    "przysiółek": 152,
+    "przysiółek kolonii": 74,
+    "przysiółek osady": 68,
+    "przysiółek wsi": 9942,
+    "schronisko turystyczne": 45,
+    "village": 43638
+  },
+  "index": "snapshots/2026-09-30-cfc57a0007dd/index.json.gz",
+  "records": "snapshots/2026-09-30-cfc57a0007dd/records.json.gz",
+  "index_bytes": 5196252,
+  "records_bytes": 15425245,
+  "previous_version": null,
+  "history": [
+    {
+      "version": "2026-09-30-cfc57a0007dd",
+      "source_export": "2026-09-30",
+      "count": 124247,
+      "records": "snapshots/2026-09-30-cfc57a0007dd/records.json.gz"
+    }
+  ],
+  "snapshot_limit": 30,
+  "downloads": [
+    {
+      "id": "cities",
+      "count": 1026,
+      "fields": [
+        "id",
+        "name",
+        "type",
+        "province",
+        "district",
+        "commune",
+        "lat",
+        "lng"
+      ],
+      "files": [
+        {
+          "format": "json",
+          "path": "downloads/cities.json.gz",
+          "bytes": 171638,
+          "transfer_bytes": 39852,
+          "compressed": true
+        },
+        {
+          "format": "csv",
+          "path": "downloads/cities.csv.gz",
+          "bytes": 95761,
+          "transfer_bytes": 36140,
+          "compressed": true
+        },
+        {
+          "format": "tsv",
+          "path": "downloads/cities.tsv.gz",
+          "bytes": 95761,
+          "transfer_bytes": 36139,
+          "compressed": true
+        },
+        {
+          "format": "geojson",
+          "path": "downloads/cities.geojson.gz",
+          "bytes": 297739,
+          "transfer_bytes": 55690,
+          "compressed": true
+        }
+      ]
+    },
+    {
+      "id": "cities-villages",
+      "count": 44664,
+      "fields": [
+        "id",
+        "name",
+        "type",
+        "province",
+        "district",
+        "commune",
+        "lat",
+        "lng"
+      ],
+      "files": [
+        {
+          "format": "json",
+          "path": "downloads/cities-villages.json.gz",
+          "bytes": 7607999,
+          "transfer_bytes": 1661516,
+          "compressed": true
+        },
+        {
+          "format": "csv",
+          "path": "downloads/cities-villages.csv.gz",
+          "bytes": 4302914,
+          "transfer_bytes": 1490788,
+          "compressed": true
+        },
+        {
+          "format": "tsv",
+          "path": "downloads/cities-villages.tsv.gz",
+          "bytes": 4302914,
+          "transfer_bytes": 1490771,
+          "compressed": true
+        },
+        {
+          "format": "geojson",
+          "path": "downloads/cities-villages.geojson.gz",
+          "bytes": 13104335,
+          "transfer_bytes": 2328141,
+          "compressed": true
+        }
+      ]
+    },
+    {
+      "id": "all-localities",
+      "count": 124247,
+      "fields": [
+        "id",
+        "name",
+        "type",
+        "province",
+        "district",
+        "commune",
+        "lat",
+        "lng",
+        "additional_names",
+        "adjective",
+        "alternate_names",
+        "category",
+        "commune_code",
+        "distinguishing_name",
+        "endonyms",
+        "exonyms",
+        "generic_term",
+        "genitive",
+        "historical_names",
+        "iip_id",
+        "locality_code",
+        "notes",
+        "parent_code",
+        "parent_name",
+        "references",
+        "representations",
+        "source_version",
+        "status",
+        "valid_from",
+        "version_start"
+      ],
+      "files": [
+        {
+          "format": "json",
+          "path": "downloads/all-localities.json.gz",
+          "bytes": 161376768,
+          "transfer_bytes": 15952533,
+          "compressed": true
+        },
+        {
+          "format": "csv",
+          "path": "downloads/all-localities.csv.gz",
+          "bytes": 113955749,
+          "transfer_bytes": 15355257,
+          "compressed": true
+        },
+        {
+          "format": "tsv",
+          "path": "downloads/all-localities.tsv.gz",
+          "bytes": 113952783,
+          "transfer_bytes": 15352671,
+          "compressed": true
+        },
+        {
+          "format": "geojson",
+          "path": "downloads/all-localities.geojson.gz",
+          "bytes": 176629434,
+          "transfer_bytes": 17753230,
+          "compressed": true
+        }
+      ]
+    }
+  ]
+}
