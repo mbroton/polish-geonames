@@ -1,0 +1,94 @@
+---
+import { translator, pagePath, formatters } from "../i18n/index.js";
+import { manifest } from "../lib/site-data.js";
+const { locale } = Astro.props;
+const t = translator(locale);
+const { number, date } = formatters(locale);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const asset = (path) => `${base}${path}`;
+const url = (page) => pagePath(locale, page, base);
+---
+
+<section
+  id="source"
+  class="document-page"
+  data-page="source"
+  aria-labelledby="source-title"
+>
+  <h2 id="source-title" tabindex="-1">
+    {t("Data source")}
+  </h2>
+  <p>
+    {t(
+      "This dataset contains cities, villages, and other localities from Poland’s National Register of Geographical Names (PRNG), maintained by GUGiK.",
+    )}
+  </p>
+  <p>
+    <a href="https://www.geoportal.gov.pl/pl/dane/panstwowy-rejestr-nazw-geograficznych-prng/">
+      {t("Read about the official register")}
+    </a>{" "}
+    {t("or")}{" "}
+    <a href="https://opendata.geoportal.gov.pl/prng/PRNG_MIEJSCOWOSCI_GML.zip">
+      {t("download the source GML archive")}
+    </a>
+    {t(".")}
+  </p>
+  <h3>{t("Coordinates and IDs")}</h3>
+  <p>
+    {t(
+      "Coordinates use WGS 84 and describe representative points for localities. They do not describe boundaries or street addresses.",
+    )}
+  </p>
+  <p>
+    {t("The")} <code>{t("id")}</code>{" "}
+    {t(
+      "field contains the official PRNG record ID. Sorting or filtering does not change it. GUGiK can change or remove source records.",
+    )}
+  </p>
+  <h3>{t("Data updates")}</h3>
+  <p>
+    {t(
+      "The source export date shows the date of the published dataset. The check date shows when the upstream source was last checked successfully. A check does not mean the records have changed. Updates are published after validation.",
+    )}
+  </p>
+  <p id="upstream-note">
+    {t(
+      "Source export: {source}. Latest checked upstream export: {upstream}. Published snapshot: {version}.",
+      {
+        source: date(manifest.source_export),
+        upstream: date(manifest.upstream_export),
+        version: manifest.version,
+      },
+    )}
+  </p>
+  <h3>{t("File formats")}</h3>
+  <p>
+    {t(
+      "JSON and GeoJSON retain nested values. CSV and TSV store arrays and objects as JSON text. CSV and TSV protect text cells that begin with spreadsheet formula characters. GeoJSON always includes point coordinates, even if you do not select latitude and longitude as columns.",
+    )}
+  </p>
+  <h3>{t("Data snapshots")}</h3>
+  <p>
+    {t(
+      "The latest 30 changed snapshots are available as compressed JSON with source metadata.",
+    )}
+  </p>
+  <ul id="snapshot-list">
+    {manifest.history.map((snapshot) => (
+      <li>
+        <a href={asset(`data/${snapshot.records}`)}>
+          {date(snapshot.source_export)} · {t("Records")}:{" "}
+          {number(snapshot.count)} · JSON.gz
+        </a>
+        {" · "}
+        <a href={asset(`data/snapshots/${snapshot.version}/metadata.json`)}>
+          {t("metadata")}
+        </a>
+      </li>
+    ))}
+  </ul>
+  <p>
+    {t("See the")} <a href={url("license")}>{t("license and attribution")}</a>{" "}
+    {t("before you share the data.")}
+  </p>
+</section>

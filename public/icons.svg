@@ -1,4 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="flag-pl" viewBox="0 0 30 20"><path fill="#fff" d="M0 0h30v10H0z"/><path fill="#dc143c" d="M0 10h30v10H0z"/></symbol>
+  <symbol id="flag-en" viewBox="0 0 60 40"><path fill="#012169" d="M0 0h60v40H0z"/><path d="m0 0 60 40m0-40L0 40" stroke="#fff" stroke-width="8"/><path d="m0 0 60 40m0-40L0 40" stroke="#c8102e" stroke-width="3"/><path d="M30 0v40M0 20h60" stroke="#fff" stroke-width="13"/><path d="M30 0v40M0 20h60" stroke="#c8102e" stroke-width="8"/></symbol>
   <symbol id="map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z M9 3v15 M15 6v15"/></symbol>
   <symbol id="download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12 m-5-5 5 5 5-5 M4 15v5h16v-5"/></symbol>
   <symbol id="info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6 M12 7h.01"/></symbol>

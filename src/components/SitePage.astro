@@ -1,0 +1,292 @@
+---
+import "../style.css";
+import Builder from "./Builder.astro";
+import Downloads from "./Downloads.astro";
+import About from "./About.astro";
+import Source from "./Source.astro";
+import License from "./License.astro";
+import { languages, pagePath, translator, formatters } from "../i18n/index.js";
+import { PRESETS } from "../data.js";
+import { manifest } from "../lib/site-data.js";
+import { siteName } from "../lib/brand.js";
+const { locale, page, entry = false } = Astro.props;
+const t = translator(locale);
+const { number, date } = formatters(locale);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const asset = (path) => `${base}${path}`;
+const url = (page) => pagePath(locale, page, base);
+const absolute = (path) => new URL(path, Astro.site).href;
+const canonical = absolute(url(page));
+const title =
+  page === "home"
+    ? `${siteName} | ${t("Places in Poland and their coordinates")}`
+    : `${t({ download: "Download", about: "About", source: "Data source", license: "License" }[page])} | ${siteName}`;
+const description = t(
+  {
+    home: "Download Polish localities from PRNG. Filter places, select fields, and export JSON, CSV, TSV, or GeoJSON.",
+    download: "Choose a prepared dataset and file format below.",
+    about:
+      "Find and download cities, villages, and other localities from the official PRNG register, with coordinates and administrative divisions.",
+    source:
+      "This dataset contains cities, villages, and other localities from Poland’s National Register of Geographical Names (PRNG), maintained by GUGiK.",
+    license:
+      "Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0. Converted by Polish geonames.",
+  }[page],
+);
+const datasets = PRESETS.map((preset) => ({
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: t(preset.name),
+  description: t(preset.description),
+  url: canonical,
+  license: manifest.license,
+  dateModified: manifest.source_export,
+  spatialCoverage: "Poland",
+  creator: {
+    "@type": "Organization",
+    name: "GUGiK",
+    url: "https://www.geoportal.gov.pl/",
+  },
+  distribution: manifest.downloads
+    .find((download) => download.id === preset.id)
+    .files.map((file) => ({
+      "@type": "DataDownload",
+      contentUrl: absolute(asset(`data/${file.path}`)),
+      encodingFormat: file.format,
+    })),
+}));
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#ffffff" />
+    <title>{title}</title>
+    <link rel="icon" href={asset("favicon.svg?v=2")} type="image/svg+xml" />
+    <link rel="canonical" href={canonical} />
+    {languages.map((language) => (
+      <link
+        rel="alternate"
+        hreflang={language}
+        href={absolute(pagePath(language, page, base))}
+      />
+    ))}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={absolute(page === "home" ? base : pagePath("en", page, base))}
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === "pl" ? "pl_PL" : "en_GB"} />
+    <meta name="twitter:card" content="summary" />
+    {page === "download" && (
+      <script
+        type="application/ld+json"
+        set:html={JSON.stringify(datasets).replaceAll("<", "\\u003c")}
+      />
+    )}
+  </head>
+  <body data-view={page} data-entry={entry ? "true" : undefined}>
+    <a class="skip-link" href="#main-content">
+      {t("Skip to content")}
+    </a>
+    <header class="site-header">
+      <h1>
+        <svg
+          class="brand-flag"
+          viewBox="0 0 32 20"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path fill="#fff" d="M0 0h32v10H0z" />
+          <path fill="#dc143c" d="M0 10h32v10H0z" />
+        </svg>
+        {siteName}
+      </h1>
+      <nav aria-label={t("Main navigation")}>
+        <a
+          href={url("home")}
+          data-route="home"
+          aria-current={page === "home" ? "page" : undefined}
+        >
+          <svg class="icon" aria-hidden="true" focusable="false">
+            <use href={asset("icons.svg#map")}></use>
+          </svg>
+          {t("Map")}
+        </a>
+        <a
+          href={url("download")}
+          data-route="download"
+          aria-current={page === "download" ? "page" : undefined}
+        >
+          <svg class="icon" aria-hidden="true" focusable="false">
+            <use href={asset("icons.svg#download")}></use>
+          </svg>
+          {t("Download")}
+        </a>
+        <a
+          href={url("about")}
+          data-route="about"
+          aria-current={page === "about" ? "page" : undefined}
+        >
+          <svg class="icon" aria-hidden="true" focusable="false">
+            <use href={asset("icons.svg#info")}></use>
+          </svg>
+          {t("About")}
+        </a>
+      </nav>
+      <div class="header-actions">
+        <details class="language-selector">
+          <summary
+            aria-label={`${t("Language")}: ${locale === "pl" ? "Polski" : "English"}`}
+          >
+            <svg class="language-flag" aria-hidden="true" focusable="false">
+              <use href={asset(`icons.svg#flag-${locale}`)} />
+            </svg>
+            {locale.toUpperCase()}
+            <svg
+              class="language-chevron"
+              viewBox="0 0 16 16"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="m4 6 4 4 4-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </summary>
+          <ul class="language-options" aria-label={t("Language")}>
+            {languages.map((language) => (
+              <li>
+                <a
+                  href={pagePath(language, page, base)}
+                  lang={language}
+                  hreflang={language}
+                  data-language={language}
+                  aria-current={locale === language ? "true" : undefined}
+                >
+                  <svg
+                    class="language-flag"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <use href={asset(`icons.svg#flag-${language}`)} />
+                  </svg>
+                  {language === "pl" ? "Polski" : "English"}
+                  {locale === language && (
+                    <svg
+                      class="language-check"
+                      viewBox="0 0 16 16"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        d="m3 8 3 3 7-7"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+        <a
+          class="github-link"
+          href="https://github.com/mbroton/polish-geonames"
+        >
+          <svg class="icon github-icon" aria-hidden="true" focusable="false">
+            <use href={asset("icons.svg#github")}></use>
+          </svg>
+          {t("GitHub")}
+        </a>
+      </div>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <p id="global-status" class="notice" role="status" hidden></p>
+      {page === "home" && <Builder locale={locale} />}
+      {page === "download" && <Downloads locale={locale} />}
+      {page === "about" && <About locale={locale} />}
+      {page === "source" && <Source locale={locale} />}
+      {page === "license" && <License locale={locale} />}
+    </main>
+    {page === "home" && (
+      <noscript>
+        <p class="notice">
+          {t("Enable JavaScript for the custom builder, or")}{" "}
+          <a href={url("download")}>{t("choose a prepared download")}</a>.
+        </p>
+      </noscript>
+    )}
+    <footer class="site-footer">
+      <div class="dataset-info" aria-label={t("Dataset summary")}>
+        <span>
+          {t("Records")}:{" "}
+          <strong id="total-count">{number(manifest.count)}</strong>
+        </span>
+        <span
+          id="check-date"
+          title={t("Date of the last successful source check.")}
+        >
+          {t("Up to date as of {date}", { date: date(manifest.last_checked) })}
+        </span>
+      </div>
+      <div class="footer-links">
+        <nav aria-label={t("Footer navigation")}>
+          <a
+            href={url("source")}
+            data-route="source"
+            aria-current={page === "source" ? "page" : undefined}
+          >
+            <svg class="icon" aria-hidden="true" focusable="false">
+              <use href={asset("icons.svg#database")}></use>
+            </svg>
+            {t("Data source")}
+          </a>
+          <a
+            href={url("license")}
+            data-route="license"
+            aria-current={page === "license" ? "page" : undefined}
+          >
+            <svg class="icon" aria-hidden="true" focusable="false">
+              <use href={asset("icons.svg#license")}></use>
+            </svg>
+            {t("License")}
+          </a>
+          <a href="https://github.com/mbroton/polish-geonames">
+            <svg class="icon github-icon" aria-hidden="true" focusable="false">
+              <use href={asset("icons.svg#github")}></use>
+            </svg>
+            {t("Open source on GitHub")}
+          </a>
+        </nav>
+        <p>
+          {t("Built by")}{" "}
+          <a href="https://github.com/mbroton">{t("mbroton")}</a>
+        </p>
+      </div>
+    </footer>
+    <script
+      id="site-data"
+      type="application/json"
+      set:html={JSON.stringify(manifest).replaceAll("<", "\\u003c")}
+    />
+    <script src="../site.js"></script>
+  </body>
+</html>

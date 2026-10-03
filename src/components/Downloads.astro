@@ -1,0 +1,119 @@
+---
+import { translator, pagePath, formatters } from "../i18n/index.js";
+import { PRESETS, FORMATS } from "../data.js";
+import { manifest } from "../lib/site-data.js";
+const { locale } = Astro.props;
+const t = translator(locale);
+const { number, size } = formatters(locale);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const asset = (path) => `${base}${path}`;
+const url = (page) => pagePath(locale, page, base);
+---
+
+<section id="downloads" data-page="download" aria-labelledby="download-title">
+  <div class="section-heading">
+    <div>
+      <h2 id="download-title" tabindex="-1">
+        {t("Prepared downloads")}
+      </h2>
+      <p>{t("Choose a prepared dataset and file format below.")}</p>
+      <p>
+        {t("For a custom download, use")} <a href={url("home")}>{t("Map")}</a>{" "}
+        {t(
+          "to filter places, choose the columns to include, and select a file format.",
+        )}
+      </p>
+    </div>
+    <a href={url("license")}>
+      <svg class="icon" aria-hidden="true" focusable="false">
+        <use href={asset("icons.svg#info")}></use>
+      </svg>
+      {t("Source attribution")}
+    </a>
+  </div>
+  <table class="downloads-table">
+    <thead>
+      <tr>
+        <th scope="col">{t("Dataset")}</th>
+        <th scope="col" class="size-column">
+          {t("File size")}
+        </th>
+        <th scope="col">{t("Format")}</th>
+        <th scope="col">
+          <span class="sr-only">{t("Download")}</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody id="prepared-downloads" aria-busy="false">
+      {PRESETS.map((preset) => {
+        const info = manifest.downloads.find(
+          (download) => download.id === preset.id,
+        );
+        const file = info.files[0];
+        const name = t(preset.name);
+        return (
+          <tr data-preset={preset.id}>
+            <th scope="row" title={t(preset.description)}>
+              <b>{name}</b>
+              <span class="file-details">
+                {t("Records: {count} · Fields: {fields}", {
+                  count: number(info.count),
+                  fields: number(info.fields.length),
+                })}
+              </span>
+            </th>
+            <td class="file-size">{size(file.bytes)}</td>
+            <td>
+              <select disabled aria-label={t("{name} file format", { name })}>
+                {FORMATS.map((format) => (
+                  <option value={format}>{format.toUpperCase()}</option>
+                ))}
+              </select>
+            </td>
+            <td>
+              <button
+                class="button"
+                type="button"
+                disabled
+                aria-label={t("Download {name} as {format}", {
+                  name,
+                  format: "JSON",
+                })}
+              >
+                <svg class="icon" aria-hidden="true" focusable="false">
+                  <use href={asset("icons.svg#download")} />
+                </svg>
+                <span class="download-label">{t("Download")}</span>
+              </button>
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+  <noscript>
+    <div class="direct-downloads document-page">
+      <h3>{t("Direct file links")}</h3>
+      <p>
+        {t(
+          "Text files are compressed (.gz). Decompress them after downloading.",
+        )}
+      </p>
+      <ul>
+        {PRESETS.map((preset) => (
+          <li>
+            {t(preset.name)}:
+            {manifest.downloads
+              .find((download) => download.id === preset.id)
+              .files.map((file) => (
+                <a download href={asset(`data/${file.path}`)}>
+                  {file.format.toUpperCase()}
+                  {file.compressed ? ".gz" : ""}
+                </a>
+              ))}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </noscript>
+</section>

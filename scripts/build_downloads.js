@@ -51,20 +51,16 @@ try {
     const fields = preset.fields || manifest.fields;
     const files = [];
     for (const format of FORMATS) {
-      const { data } = await exportData(selected, fields, format, manifest);
+      const { data } = await exportData(selected, fields, format);
       const bytes = Buffer.from(data);
-      const compressed = format !== "xlsx";
-      const relative = `downloads/${preset.id}.${format}${compressed ? ".gz" : ""}`;
-      await writeFile(
-        join(root, relative),
-        compressed ? gzipSync(bytes) : bytes,
-      );
+      const relative = `downloads/${preset.id}.${format}.gz`;
+      await writeFile(join(root, relative), gzipSync(bytes));
       files.push({
         format,
         path: relative,
         bytes: bytes.length,
         transfer_bytes: (await stat(join(root, relative))).size,
-        compressed,
+        compressed: true,
       });
       console.log(
         `${preset.id}.${format}: ${(bytes.length / 1e6).toFixed(1)} MB file, ${(files.at(-1).transfer_bytes / 1e6).toFixed(1)} MB transfer`,

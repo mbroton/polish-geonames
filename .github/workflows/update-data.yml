@@ -1,6 +1,8 @@
 name: Check PRNG and publish website
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "37 5 * * *"
   workflow_dispatch:
@@ -13,14 +15,24 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    # Set this repository variable only after reviewing and approving publication.
-    if: vars.ENABLE_WEBSITE_PUBLISH == 'true' && github.ref == 'refs/heads/main'
+  publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    environment:
+      name: production
+      url: https://miejsca.app
     permissions:
       contents: write
     steps:
+      - name: Check deployment credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Add the CLOUDFLARE_API_TOKEN repository secret before publishing."
+            exit 1
+          fi
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -46,18 +58,29 @@ jobs:
       - name: Check upstream and build downloads
         run: npm run data
       - run: npm run build
-      - name: Check the Pages size limit
+      - name: Check Cloudflare asset limits
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          size = sum(p.stat().st_size for p in Path('dist').rglob('*') if p.is_file())
-          if size > 900_000_000:
-              raise SystemExit('Site exceeds the 900 MB publication limit. Review snapshot retention before publishing.')
-          print(f'Site size: {size / 1_000_000:.1f} MB')
+          files = [p for p in Path('dist').rglob('*') if p.is_file()]
+          if not files or len(files) > 20_000:
+              raise SystemExit('Cloudflare requires between 1 and 20,000 static files on the Free plan.')
+          oversized = [str(p) for p in files if p.stat().st_size > 25 * 1024 * 1024]
+          if oversized:
+              raise SystemExit('Files exceed the Cloudflare 25 MiB limit: ' + ', '.join(oversized))
+          print(f'{len(files)} files fit the Cloudflare static asset limits.')
           PY
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - name: Publish the validated website
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Check the published pages
+        run: |
+          curl --fail --silent --show-error --retry 3 --output /dev/null https://miejsca.app/pl/
+          curl --fail --silent --show-error --retry 3 --output /dev/null https://miejsca.app/en/
+          curl --fail --silent --show-error --retry 3 --output /dev/null https://miejsca.app/data/manifest.json
       - name: Save validated state on the data branch
         run: python3 scripts/save_state.py
       - name: Record the source check
@@ -68,16 +91,10 @@ jobs:
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
               f.write(f"Snapshot: {m['version']}\n\nRecords: {m['count']:,}\n\nSource checked: {m['last_checked']}\n")
           PY
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Publish the validated website
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

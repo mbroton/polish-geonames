@@ -8,7 +8,7 @@ export const BASIC_FIELDS = [
   "lat",
   "lng",
 ];
-export const FORMATS = ["json", "csv", "tsv", "geojson", "xlsx"];
+export const FORMATS = ["json", "csv", "tsv", "geojson"];
 export const PRESETS = [
   {
     id: "cities",
@@ -108,8 +108,6 @@ export const FIELD_INFO = {
   ],
 };
 
-export const TYPE_LABELS = { city: "City / town", village: "Village" };
-export const typeLabel = (type) => TYPE_LABELS[type] || type;
 export const fold = (text) =>
   String(text ?? "")
     .normalize("NFD")

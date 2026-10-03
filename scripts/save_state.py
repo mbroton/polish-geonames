@@ -1,4 +1,4 @@
-"""Save validated snapshot state on the data branch. Used only by the opt-in workflow."""
+"""Save published snapshot state on the data branch from the publishing workflow."""
 import os
 from pathlib import Path
 import shutil
@@ -18,8 +18,8 @@ def main():
     git("worktree", "add", "--detach", str(folder), "origin/data" if existing else "HEAD")
     if not existing:
         git("switch", "--orphan", "data", cwd=folder)
-    # Only generated state goes to this branch. Large downloadable files are
-    # rebuilt for Pages and are never committed to the code or data branch.
+    # Only generated state goes to this branch. Preset downloads are rebuilt
+    # during deployment and are never committed to the code or data branch.
     if (folder / "snapshots").exists():
         shutil.rmtree(folder / "snapshots")
     shutil.copytree(source / "snapshots", folder / "snapshots")

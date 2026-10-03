@@ -5,7 +5,6 @@ const MIME = {
   csv: "text/csv;charset=utf-8",
   tsv: "text/tab-separated-values;charset=utf-8",
   geojson: "application/geo+json",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 function cell(value) {
@@ -41,7 +40,7 @@ export function geojson(rows, fields) {
   };
 }
 
-export async function exportData(rows, fields, format, metadata = {}) {
+export async function exportData(rows, fields, format) {
   if (!fields.length) throw new Error("Select at least one field.");
   let data;
   if (format === "json")
@@ -58,35 +57,6 @@ export async function exportData(rows, fields, format, metadata = {}) {
             .join(separator),
         ),
       ].join("\r\n") + "\r\n";
-  } else if (format === "xlsx") {
-    const XLSX = await import("xlsx");
-    const workbook = XLSX.utils.book_new();
-    const sheet = XLSX.utils.aoa_to_sheet(
-      [fields, ...rows.map((row) => fields.map((field) => cell(row[field])))],
-      { dense: true },
-    );
-    sheet["!autofilter"] = { ref: sheet["!ref"] };
-    XLSX.utils.book_append_sheet(workbook, sheet, "Localities");
-    XLSX.utils.book_append_sheet(
-      workbook,
-      XLSX.utils.aoa_to_sheet([
-        ["Source", metadata.attribution || "PRNG / GUGiK"],
-        ["Source export", metadata.source_export || ""],
-        ["Snapshot", metadata.version || ""],
-        [
-          "License",
-          metadata.license || "https://creativecommons.org/licenses/by/4.0/",
-        ],
-        ["Nested fields", "Arrays and objects are stored as JSON text."],
-      ]),
-      "Source",
-    );
-    data = XLSX.write(workbook, {
-      type: "array",
-      bookType: "xlsx",
-      compression: true,
-      bookSST: true,
-    });
   } else throw new Error("Unknown download format.");
   return { data, mime: MIME[format] };
 }

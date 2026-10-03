@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
-import * as XLSX from "xlsx";
+import { gzipSync } from "node:zlib";
 
 test.beforeEach(async ({ page }) => {
   // Browser checks must not depend on the public map tile service.
@@ -14,8 +14,99 @@ test.beforeEach(async ({ page }) => {
       ),
     }),
   );
-  await page.goto("./");
-  await expect(page.locator("#loading")).toHaveText("Selection ready");
+  await page.goto("./en/");
+  await expect(page.locator("#builder-results")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
+});
+
+test("loading uses a spinner and the preview row reports the displayed record count", async ({
+  page,
+  context,
+}) => {
+  const records = Array.from({ length: 60 }, (_, index) => ({
+    id: index + 1,
+    name: `Example ${String(index + 1).padStart(2, "0")}`,
+    type: "village",
+    province: "Example province",
+    district: "Example county",
+    commune: "Example commune",
+    commune_code: "0123456",
+    status: "urzędowa",
+    lat: 52,
+    lng: 19,
+  }));
+  let release;
+  const pending = new Promise((resolve) => {
+    release = resolve;
+  });
+  await context.route("**/index.json.gz", async (route) => {
+    await pending;
+    await route.fulfill({
+      contentType: "application/gzip",
+      body: gzipSync(JSON.stringify(records)),
+    });
+  });
+  try {
+    await page.reload();
+    await expect(page.locator("#loading .loading-spinner")).toBeVisible();
+    await expect(page.locator("#download-custom")).toBeDisabled();
+    const spinner = await page.locator(".loading-spinner").boundingBox();
+    const count = await page.locator("#match-count").boundingBox();
+    expect(spinner.x).toBeGreaterThan(count.x + count.width);
+    expect(
+      Math.abs(spinner.y + spinner.height / 2 - count.y - count.height / 2),
+    ).toBeLessThan(2);
+  } finally {
+    release();
+  }
+  await expect(page.locator("#download-custom")).toBeEnabled();
+  await expect(page.locator("#loading")).toBeHidden();
+  await expect(page.locator(".selection-summary")).toHaveText("Records: 60");
+  await expect(page.locator("#builder h2")).toHaveCount(0);
+  await expect(page.locator(".preview-note")).toHaveCount(0);
+  await page.getByRole("tab", { name: "Preview", exact: true }).click();
+  await expect(page.locator("#preview-summary")).toHaveText("Shown: 50");
+  await expect(page.locator("#preview-table tbody tr")).toHaveCount(50);
+  const tabs = await page.locator(".preview-mode-tabs").boundingBox();
+  const summary = await page.locator("#preview-summary").boundingBox();
+  expect(summary.x).toBeGreaterThan(tabs.x + tabs.width);
+  expect(
+    Math.abs(summary.y + summary.height / 2 - tabs.y - tabs.height / 2),
+  ).toBeLessThan(2);
+  await page.getByRole("tab", { name: "Output", exact: true }).click();
+  await expect(page.locator("#preview-summary")).toHaveText("Shown: 3");
+  expect(
+    JSON.parse(await page.locator("#output-preview").textContent()),
+  ).toHaveLength(3);
+  await expect(page.locator("#preview-summary")).toHaveAttribute(
+    "title",
+    "The download includes every matching record.",
+  );
+  await page.locator("#search").fill("Example 01");
+  await expect(page.locator("#preview-summary")).toHaveText("Shown: 1");
+  await page.getByRole("tab", { name: "Table", exact: true }).click();
+  await expect(page.locator("#preview-summary")).toHaveText("Shown: 1");
+  await page.locator("#search").fill("no such record");
+  await expect(page.locator("#preview-summary")).toHaveText("Shown: 0");
+  await expect(page.locator("#loading")).toBeHidden();
+  await expect(page.locator("#download-custom")).toBeDisabled();
+});
+
+test("a failed data load stops the spinner and shows an error", async ({
+  page,
+  context,
+}) => {
+  await context.route("**/index.json.gz", (route) =>
+    route.fulfill({ status: 503, body: "Unavailable" }),
+  );
+  await page.reload();
+  await expect(page.locator("#global-status")).toContainText(
+    "The data file could not be loaded.",
+  );
+  await expect(page.locator("#loading")).toBeHidden();
+  await expect(page.locator("#download-custom")).toBeDisabled();
 });
 
 test("builder starts from all types, filters names without accents, and resets", async ({
@@ -28,7 +119,10 @@ test("builder starts from all types, filters names without accents, and resets",
     .textContent();
   expect(await page.locator("input[name=type]:not(:checked)").count()).toBe(0);
   await page.locator("#search").fill("malachow");
-  await expect(page.locator("#loading")).toHaveText("Selection ready");
+  await expect(page.locator("#builder-results")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
   await page.getByRole("tab", { name: "Preview", exact: true }).click();
   await expect(page.locator("#preview-table")).toContainText("76566");
   await expect(page.locator("#preview-table")).toContainText("Małachów");
@@ -43,7 +137,7 @@ test("builder starts from all types, filters names without accents, and resets",
   await expect(page.locator("#search")).toHaveValue("");
 });
 
-test("custom download uses the selected fields in all five formats", async ({
+test("custom download uses the selected fields in all four formats", async ({
   page,
 }) => {
   await page.locator("#search").fill("malachow");
@@ -57,7 +151,13 @@ test("custom download uses the selected fields in all five formats", async ({
   await expect(page.locator("#preview-table th")).toHaveText(["id", "name"]);
   await page.getByRole("button", { name: /^Columns/ }).click();
   await page.getByRole("tab", { name: "Map", exact: true }).click();
-  for (const format of ["json", "csv", "tsv", "geojson", "xlsx"]) {
+  await expect(page.locator("#format option")).toHaveText([
+    "JSON",
+    "CSV",
+    "TSV",
+    "GeoJSON",
+  ]);
+  for (const format of ["json", "csv", "tsv", "geojson"]) {
     await page.locator("#format").selectOption(format);
     await expect(page.locator("#download-custom")).toBeEnabled();
     const pending = page.waitForEvent("download");
@@ -76,13 +176,6 @@ test("custom download uses the selected fields in all five formats", async ({
         20.2920359676266, 51.224092182361815,
       ]);
       expect(place.properties).toEqual({ id: 76566, name: "Małachów" });
-    } else if (format === "xlsx") {
-      const book = XLSX.read(bytes);
-      expect(book.SheetNames).toEqual(["Localities", "Source"]);
-      expect(XLSX.utils.sheet_to_json(book.Sheets.Localities)).toContainEqual({
-        id: 76566,
-        name: "Małachów",
-      });
     } else {
       expect(bytes.toString()).toContain(
         `76566${format === "csv" ? "," : "\t"}Małachów`,
@@ -103,23 +196,40 @@ test("extra source fields load on demand and preserve locality codes", async ({
   await expect(page.locator("#preview-table")).toContainText("0244340");
 });
 
-test("ready-made downloads are independent of custom filters and decompress correctly", async ({
+test("prepared downloads wait for scripts, ignore custom filters, and decompress correctly", async ({
   page,
 }) => {
   await page.locator("[data-types=none]").click();
   await expect(page.locator("#match-count")).toHaveText("0");
-  await page
-    .getByRole("navigation", { name: "Main navigation" })
-    .getByRole("link", { name: "Download", exact: true })
-    .click();
+  let release;
+  const scriptReady = new Promise((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/downloads.*.js", async (route) => {
+    await scriptReady;
+    await route.continue();
+  });
+  const button = page.getByRole("button", {
+    name: "Download Cities & villages as JSON",
+    exact: true,
+  });
+  try {
+    await page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link", { name: "Download", exact: true })
+      .click();
+    await expect(button).toBeDisabled();
+    await expect(
+      page.getByRole("combobox", { name: "Cities & villages file format" }),
+    ).toBeDisabled();
+  } finally {
+    release();
+  }
+  await expect(button).toBeEnabled();
   const pending = page.waitForEvent("download");
-  await page
-    .getByRole("link", {
-      name: "Download Cities & villages as JSON",
-      exact: true,
-    })
-    .click();
+  await button.click();
   const download = await pending;
+  expect(download.suggestedFilename()).toMatch(/\.json$/);
   const rows = JSON.parse(await readFile(await download.path(), "utf8"));
   expect(rows.find((row) => row.id === 76566).name).toBe("Małachów");
 });
@@ -127,29 +237,33 @@ test("ready-made downloads are independent of custom filters and decompress corr
 test("Map opens the builder and About preserves the full overview and selection", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.goto("./en/");
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
   await expect(
     navigation.getByRole("link", { name: "Map", exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  await expect(page).toHaveTitle("Polish Geonames — Map & data downloads");
+  await expect(page).toHaveTitle(
+    "miejsca.app | Places in Poland and their coordinates",
+  );
   await expect(page.locator("#builder")).toBeVisible();
   await expect(page.locator("#about")).toBeHidden();
   await expect(page.locator("#downloads")).toBeHidden();
   await navigation.getByRole("link", { name: "About", exact: true }).click();
-  await expect(page).toHaveTitle("About — Polish Geonames");
+  await expect(page).toHaveTitle("About | miejsca.app");
   await expect(page.locator("#about")).toBeVisible();
   await expect(page.locator("#builder")).toBeHidden();
-  await expect(page.locator("#overview-map")).toHaveAttribute(
+  await expect(page.locator("#overview-map")).toBeVisible();
+  await expect(page.locator("#overview-map")).toHaveJSProperty(
+    "naturalWidth",
+    1100,
+  );
+  const wholeMap = await page.locator("#overview-map").getAttribute("src");
+
+  await navigation.getByRole("link", { name: "Map", exact: true }).click();
+  await expect(page.locator("#builder-results")).toHaveAttribute(
     "aria-busy",
     "false",
   );
-  const wholeMap = await page
-    .locator("#overview-map")
-    .evaluate((canvas) => canvas.toDataURL());
-
-  await navigation.getByRole("link", { name: "Map", exact: true }).click();
-  await expect(page.locator("#loading")).toHaveText("Selection ready");
   await page.locator("#search").fill("malachow");
   await page.locator("[data-types=none]").click();
   await page.getByRole("button", { name: /^Columns/ }).click();
@@ -168,11 +282,9 @@ test("Map opens the builder and About preserves the full overview and selection"
   await expect(page.locator("#match-count")).toHaveText("0");
   await page.goBack();
   await expect(page.locator("#about")).toBeVisible();
-  expect(
-    await page
-      .locator("#overview-map")
-      .evaluate((canvas) => canvas.toDataURL()),
-  ).toBe(wholeMap);
+  expect(await page.locator("#overview-map").getAttribute("src")).toBe(
+    wholeMap,
+  );
   await page.goForward();
   await expect(page.locator("#builder")).toBeVisible();
   await expect(page.locator("#match-count")).toHaveText("0");
@@ -182,7 +294,7 @@ test("direct Download links survive a reload and all pages fit a phone", async (
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("./#/download");
+  await page.goto("./en/download/");
   await page.reload();
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
   await expect(
@@ -207,22 +319,25 @@ test("direct Download links survive a reload and all pages fit a phone", async (
   }
 });
 
-test("direct About and existing Map links survive a reload", async ({
-  page,
-}) => {
+test("direct About and Map links survive a reload", async ({ page }) => {
   const navigation = page.getByRole("navigation", { name: "Main navigation" });
-  await page.goto("./#/about");
+  await page.goto("./en/about/");
   await page.reload();
   await expect(page.locator("#about")).toBeVisible();
-  await expect(page).toHaveTitle("About — Polish Geonames");
+  await expect(page).toHaveTitle("About | miejsca.app");
   await expect(
     navigation.getByRole("link", { name: "About", exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  await page.goto("./#/map");
+  await page.goto("./en/");
   await page.reload();
-  await expect(page.locator("#loading")).toHaveText("Selection ready");
+  await expect(page.locator("#builder-results")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
   await expect(page.locator("#builder")).toBeVisible();
-  await expect(page).toHaveTitle("Polish Geonames — Map & data downloads");
+  await expect(page).toHaveTitle(
+    "miejsca.app | Places in Poland and their coordinates",
+  );
   await expect(
     navigation.getByRole("link", { name: "Map", exact: true }),
   ).toHaveAttribute("aria-current", "page");
@@ -295,7 +410,10 @@ test("phone filters fold away while keeping the map selection", async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  await expect(page.locator("#loading")).toHaveText("Selection ready");
+  await expect(page.locator("#builder-results")).toHaveAttribute(
+    "aria-busy",
+    "false",
+  );
   await expect(page.locator("#filters")).toBeHidden();
   await expect(page.locator("#map")).toBeInViewport();
   await page.locator("#filter-sidebar > summary").click();
@@ -346,7 +464,7 @@ test("footer pages explain the source and license without losing the selection",
 
   await page.setViewportSize({ width: 390, height: 844 });
   for (const route of ["source", "license"]) {
-    await page.goto(`./#/${route}`);
+    await page.goto(`./en/${route}/`);
     await page.reload();
     await expect(page.locator(`[data-page="${route}"]`)).toBeVisible();
     await expect(footer.locator(`[data-route="${route}"]`)).toHaveAttribute(

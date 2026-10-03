@@ -60,13 +60,12 @@ The snapshot builder sorts repeated value lists for consistent content compariso
 | CSV     | Header row, comma separator, UTF-8, CRLF | Selected columns                           | JSON text in a quoted cell       |
 | TSV     | Header row, tab separator, UTF-8, CRLF   | Selected columns                           | JSON text in a quoted cell       |
 | GeoJSON | FeatureCollection of Point features      | Always `[longitude, latitude]` in geometry | Arrays and objects in properties |
-| XLSX    | `Localities` and `Source` worksheets     | Selected columns                           | JSON text in a cell              |
 
 Custom exports contain only the selected fields. GeoJSON always needs geometry, so its coordinates remain even if `lat` and `lng` are not selected as properties. Its top-level feature `id` is present only when the ID field is selected.
 
-CSV and TSV quote cells with separators, newlines, or quotes. String cells that start with a spreadsheet formula marker receive a leading apostrophe. This prevents formula execution when a spreadsheet opens the file. JSON and GeoJSON retain the original text; XLSX stores text as string cells. The legacy Python TSV command applies the same text protection.
+CSV and TSV quote cells with separators, newlines, or quotes. String cells that start with a spreadsheet formula marker receive a leading apostrophe. This prevents formula execution when a spreadsheet opens the file. JSON and GeoJSON retain the original text. The legacy Python TSV command applies the same text protection.
 
-CSV and TSV files contain leading zeros, but spreadsheet applications can remove them during automatic type detection. Import code columns as text, or use XLSX, JSON, or GeoJSON.
+CSV and TSV files contain leading zeros, but spreadsheet applications can remove them during automatic type detection. Import code columns as text, or use JSON or GeoJSON.
 
 Large custom exports need browser memory. Use a prepared file or reduce the selected fields on a device with limited memory. The full register includes source references and names, so it is much larger than the eight-field cities-and-villages dataset.
 

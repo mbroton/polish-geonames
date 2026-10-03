@@ -1,28 +1,19 @@
-import "./style.css";
+import { BASIC_FIELDS } from "./data.js";
+import { typeLabel } from "./i18n/index.js";
 import {
-  BASIC_FIELDS,
-  FIELD_INFO,
-  PRESETS,
-  FORMATS,
-  typeLabel,
-} from "./data.js";
+  locale,
+  t,
+  number,
+  base,
+  basePath,
+  manifest,
+  showError,
+  saveBlob,
+} from "./client.js";
 import { exportData } from "./export.js";
-import { decodedBody } from "./compression.js";
 import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 
 const $ = (selector) => document.querySelector(selector);
-const number = (value) => new Intl.NumberFormat("en-GB").format(value);
-const date = (value) =>
-  new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(value));
-const size = (bytes) =>
-  bytes < 1e6
-    ? `${Math.ceil(bytes / 1000)} kB`
-    : `${(bytes / 1e6).toFixed(1)} MB`;
-const base = new URL("./data/", document.baseURI);
-let manifest;
 let latest;
 let revision = 0;
 let busy = true;
@@ -30,61 +21,12 @@ let exporting = false;
 let map;
 let mapModule;
 let mapStarting = false;
-let mapVisible = false;
+let mapVisible = true;
 let mapFitted = false;
-let currentPage = "home";
 let worker;
 let sequence = 0;
 const waiting = new Map();
-
-function showPage(focus = false) {
-  if (location.hash === "#main-content") return;
-  const route = location.hash.replace(/^#\/?/, "");
-  currentPage = ["about", "download", "source", "license"].includes(route)
-    ? route
-    : "home";
-  for (const page of document.querySelectorAll("[data-page]")) {
-    page.hidden = page.dataset.page !== currentPage;
-  }
-  for (const link of document.querySelectorAll("[data-route]")) {
-    if (link.dataset.route === currentPage)
-      link.setAttribute("aria-current", "page");
-    else link.removeAttribute("aria-current");
-  }
-  document.title =
-    currentPage === "home"
-      ? "Polish Geonames — Map & data downloads"
-      : `${{ about: "About", download: "Download", source: "Data source", license: "License" }[currentPage]} — Polish Geonames`;
-  mapVisible =
-    currentPage === "home" &&
-    $("#tab-map").getAttribute("aria-selected") === "true";
-  if (mapVisible) revealMap();
-  if (focus) {
-    document
-      .querySelector(`[data-page="${currentPage}"] h2`)
-      .focus({ preventScroll: true });
-    window.scrollTo(0, 0);
-  }
-}
-
-function drawOverview(points) {
-  const canvas = $("#overview-map");
-  const context = canvas.getContext("2d");
-  // Scale longitude at Poland's central latitude to keep geographic proportions.
-  const longitudeScale = Math.cos((52 * Math.PI) / 180);
-  const scale = Math.min(
-    (canvas.width - 60) / (10.2 * longitudeScale),
-    (canvas.height - 60) / 6,
-  );
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "#245fc580";
-  for (let i = 0; i < points.length; i += 2) {
-    const x = canvas.width / 2 + (points[i] - 19.1) * longitudeScale * scale;
-    const y = canvas.height / 2 + (52 - points[i + 1]) * scale;
-    context.fillRect(x, y, 1.6, 1.6);
-  }
-  canvas.setAttribute("aria-busy", "false");
-}
+const selectionKey = `polish-geonames:selection:${basePath}`;
 
 async function revealMap() {
   await updateMap();
@@ -101,11 +43,6 @@ function message(action, payload = {}) {
   });
 }
 
-function showError(target, error) {
-  target.textContent = error?.message || error;
-  target.hidden = false;
-}
-
 function option(value, label) {
   const element = document.createElement("option");
   element.value = value;
@@ -120,27 +57,6 @@ function setOptions(select, entries, prompt) {
     ...entries.map(([value, label]) => option(value, label)),
   );
   if (entries.some(([value]) => value === old)) select.value = old;
-}
-
-function checkbox(value, label, checked, name, description, count) {
-  const wrapper = document.createElement("label");
-  const input = document.createElement("input");
-  input.type = "checkbox";
-  input.value = value;
-  input.name = name;
-  input.checked = checked;
-  const text = document.createElement("span");
-  text.className = "check-label";
-  text.textContent = label;
-  if (description) wrapper.title = description;
-  wrapper.append(input, text);
-  if (count != null) {
-    const badge = document.createElement("span");
-    badge.className = "count";
-    badge.textContent = number(count);
-    wrapper.append(badge);
-  }
-  return wrapper;
 }
 
 function fields() {
@@ -162,91 +78,23 @@ function filter() {
   };
 }
 
-function renderDownloads() {
-  for (const preset of PRESETS) {
-    const info = manifest.downloads.find(
-      (download) => download.id === preset.id,
-    );
-    const row = document.createElement("tr");
-    row.innerHTML = `<th scope="row"><b></b><span class="file-details"></span></th><td class="file-size"></td><td><select></select></td><td><a class="button" download><svg class="icon" aria-hidden="true" focusable="false"><use href="./icons.svg#download"></use></svg><span class="download-label">Download</span></a></td>`;
-    row.querySelector("b").textContent = preset.name;
-    row.querySelector("th").title = preset.description;
-    row.querySelector(".file-details").textContent =
-      `${number(info.count)} places · ${info.fields.length} fields`;
-    const select = row.querySelector("select");
-    select.setAttribute("aria-label", `${preset.name} file format`);
-    select.replaceChildren(
-      ...FORMATS.map((format) =>
-        option(
-          format,
-          format === "xlsx" ? "Excel (.xlsx)" : format.toUpperCase(),
-        ),
-      ),
-    );
-    const update = () => {
-      const file = info.files.find((file) => file.format === select.value);
-      const link = row.querySelector("a");
-      link.href = new URL(file.path, base);
-      link.setAttribute(
-        "aria-label",
-        `Download ${preset.name} as ${select.value.toUpperCase()}`,
-      );
-      row.querySelector(".file-size").textContent = size(file.bytes);
-    };
-    select.addEventListener("change", update);
-    update();
-    $("#prepared-downloads").append(row);
-    row.querySelector("a").addEventListener("click", async (event) => {
-      const file = info.files.find((file) => file.format === select.value);
-      if (!file.compressed) return;
-      event.preventDefault();
-      const link = event.currentTarget;
-      if (link.getAttribute("aria-disabled") === "true") return;
-      link.setAttribute("aria-disabled", "true");
-      select.disabled = true;
-      row.querySelector(".file-size").textContent = "Preparing…";
-      link.querySelector(".download-label").textContent = "Preparing…";
-      try {
-        const response = await fetch(new URL(file.path, base));
-        const blob = await new Response(await decodedBody(response)).blob();
-        saveBlob(
-          blob,
-          `polish-geonames-${preset.id}-${manifest.source_export}.${file.format}`,
-        );
-      } catch (error) {
-        showError($("#global-status"), error);
-      } finally {
-        select.disabled = false;
-        link.removeAttribute("aria-disabled");
-        link.querySelector(".download-label").textContent = "Download";
-        update();
-      }
-    });
-  }
-  $("#prepared-downloads").setAttribute("aria-busy", "false");
-}
-
-function saveBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-
 function updateDownloadState() {
   const selected = fields();
   const format = $("#format").value;
   const count = latest?.count || 0;
+  $("#builder-results").setAttribute("aria-busy", String(busy || exporting));
+  $("#loading").hidden = !busy && !exporting;
+  $("#loading-text").textContent = exporting
+    ? t("Preparing file…")
+    : busy
+      ? t(latest ? "Updating selection…" : "Loading the register…")
+      : "";
   $("#fields-summary").textContent = `(${selected.length})`;
   const typeCount = filter().types.length;
   $("#types-summary").textContent =
     typeCount === Object.keys(manifest.types).length
-      ? "All types"
-      : `${typeCount} selected`;
+      ? t("All types")
+      : t("{count} selected", { count: number(typeCount) });
   const activeFilters = [
     $("#search").value.trim(),
     typeCount !== Object.keys(manifest.types).length,
@@ -256,24 +104,25 @@ function updateDownloadState() {
     $("#name-status").value,
   ].filter(Boolean).length;
   $("#filter-summary").textContent = activeFilters
-    ? `${activeFilters} active`
-    : "All places";
+    ? t("{count} active", { count: number(activeFilters) })
+    : t("All places");
   $("#download-custom").disabled =
     busy || exporting || !selected.length || !count;
   $("#download-label").replaceChildren(
     document.createTextNode(
-      exporting ? "Preparing file…" : `Download ${format.toUpperCase()}`,
+      exporting
+        ? t("Preparing file…")
+        : t("Download {format}", { format: format.toUpperCase() }),
     ),
   );
   $("#export-summary").textContent = !selected.length
-    ? "Select at least one column."
-    : `${selected.length} columns selected`;
+    ? t("Select at least one column.")
+    : t("{count} columns selected", { count: number(selected.length) });
   $("#format-note").textContent = {
-    json: "A JSON array of the selected fields.",
-    csv: "Comma-separated values. Nested values use JSON text.",
-    tsv: "Tab-separated values. Nested values use JSON text.",
-    geojson: "Point features. Coordinates are always included in geometry.",
-    xlsx: "Excel workbook with a source information sheet.",
+    json: t("A JSON array of the selected fields."),
+    csv: t("Comma-separated values. Nested values use JSON text."),
+    tsv: t("Tab-separated values. Nested values use JSON text."),
+    geojson: t("Point features. Coordinates are always included in geometry."),
   }[format];
 }
 
@@ -308,52 +157,53 @@ function renderTable() {
     const td = document.createElement("td");
     td.colSpan = Math.max(selected.length, 1);
     td.textContent = !selected.length
-      ? "Select fields to preview your file."
-      : "No matches. Change or reset your filters.";
+      ? t("Select fields to preview your file.")
+      : t("No matches. Change or reset your filters.");
     tr.append(td);
     rows.push(tr);
   }
   $("#preview-table tbody").replaceChildren(...rows);
 }
 
+function updatePreviewSummary() {
+  const output = $("#tab-output").getAttribute("aria-selected") === "true";
+  const shown =
+    latest && fields().length
+      ? output
+        ? latest.geoRows.length
+        : latest.rows.length
+      : 0;
+  $("#preview-summary").textContent = t("Shown: {count}", {
+    count: number(shown),
+  });
+  $("#preview-summary").title = t(
+    "The download includes every matching record.",
+  );
+}
+
 async function renderOutput() {
+  updatePreviewSummary();
   if (!latest) return;
   const selected = fields();
   if (!selected.length) {
-    $("#output-preview").textContent = "Select at least one field.";
+    $("#output-preview").textContent = t("Select at least one field.");
     return;
   }
   const format = $("#format").value;
   const current = revision;
   const rows = latest.geoRows.slice(0, 3);
-  if (format === "xlsx") {
-    $("#output-preview").textContent = JSON.stringify(
-      latest.rows.slice(0, 3),
-      null,
-      2,
-    );
-    $("#output-note").textContent =
-      "Values for the first 3 rows. The download is an Excel workbook, not JSON.";
-  } else {
-    const { data } = await exportData(rows, selected, format, manifest);
-    if (current !== revision || format !== $("#format").value) return;
-    $("#output-preview").textContent = ["json", "geojson"].includes(format)
-      ? JSON.stringify(JSON.parse(data), null, 2)
-      : data;
-    $("#output-note").textContent =
-      "Preview of the first 3 matching records. The download includes every match.";
-  }
+  const { data } = await exportData(rows, selected, format);
+  if (current !== revision || format !== $("#format").value) return;
+  $("#output-preview").textContent = ["json", "geojson"].includes(format)
+    ? JSON.stringify(JSON.parse(data), null, 2)
+    : data;
 }
 
 async function applyFilters() {
+  saveSelection();
   const current = ++revision;
   busy = true;
   $("#builder-error").hidden = true;
-  $("#loading").textContent = fields().some(
-    (field) => !manifest.core_fields.includes(field),
-  )
-    ? "Loading source details…"
-    : "Updating selection…";
   updateDownloadState();
   try {
     const response = await message("filter", {
@@ -366,22 +216,20 @@ async function applyFilters() {
     setOptions(
       $("#district"),
       response.districts.map((name) => [name, name]),
-      "All counties",
+      t("All counties"),
     );
-    setOptions($("#commune"), response.communes, "All communes");
+    setOptions($("#commune"), response.communes, t("All communes"));
     $("#district").disabled = !$("#province").value;
     $("#commune").disabled = !$("#province").value;
     renderTable();
     await renderOutput();
     if (mapVisible) await updateMap();
-    $("#loading").textContent = response.count
-      ? "Selection ready"
-      : "No matching places";
   } catch (error) {
     if (current !== revision) return;
     showError($("#builder-error"), error);
-    $("#loading").textContent = "Could not update the preview";
     latest = null;
+    $("#match-count").textContent = "—";
+    updatePreviewSummary();
   } finally {
     if (current === revision) {
       busy = false;
@@ -447,6 +295,27 @@ async function updateMap() {
       zoom: 5.1,
       maxZoom: 16,
       attributionControl: false,
+      locale: {
+        "Map.Title": t("Map"),
+        "NavigationControl.ZoomIn": t("Zoom in"),
+        "NavigationControl.ZoomOut": t("Zoom out"),
+        "NavigationControl.ResetBearing": t(
+          "Drag to rotate map, click to reset north",
+        ),
+        "Popup.Close": t("Close popup"),
+        "AttributionControl.ToggleAttribution": t("Toggle attribution"),
+        "AttributionControl.MapFeedback": t("Map feedback"),
+        "Marker.Title": t("Map marker"),
+        "CooperativeGesturesHandler.WindowsHelpText": t(
+          "Use Ctrl + scroll to zoom the map",
+        ),
+        "CooperativeGesturesHandler.MacHelpText": t(
+          "Use ⌘ + scroll to zoom the map",
+        ),
+        "CooperativeGesturesHandler.MobileHelpText": t(
+          "Use two fingers to move the map",
+        ),
+      },
       style: {
         version: 8,
         sources: {
@@ -454,8 +323,7 @@ async function updateMap() {
             type: "raster",
             tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
             tileSize: 256,
-            attribution:
-              '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: `<a href="https://www.openstreetmap.org/copyright">${t("© OpenStreetMap contributors")}</a>`,
           },
         },
         layers: [
@@ -483,7 +351,9 @@ async function updateMap() {
       if (!map.getSource("places"))
         showError(
           $("#map-error"),
-          "The background map is unavailable. Table and downloads still work.",
+          t(
+            "The background map is unavailable. Table and downloads still work.",
+          ),
         );
     });
     map.on("load", () => {
@@ -545,7 +415,7 @@ async function updateMap() {
         const name = document.createElement("strong");
         name.textContent = row.name;
         const detail = document.createElement("p");
-        detail.textContent = `${typeLabel(row.type)} · ${row.commune || ""} · PRNG ${row.id}`;
+        detail.textContent = `${typeLabel(row.type, locale)} · ${row.commune || ""} · PRNG ${row.id}`;
         content.append(name, detail);
         new mapModule.Popup()
           .setLngLat(feature.geometry.coordinates)
@@ -569,7 +439,9 @@ async function updateMap() {
   } catch {
     showError(
       $("#map-error"),
-      "This browser could not start the map. Use the table to inspect your selection.",
+      t(
+        "This browser could not start the map. Use the table to inspect your selection.",
+      ),
     );
   } finally {
     mapStarting = false;
@@ -585,10 +457,10 @@ function activateTab(button) {
     tab.tabIndex = active ? 0 : -1;
     $(`#${tab.getAttribute("aria-controls")}`).hidden = !active;
   }
-  mapVisible =
-    currentPage === "home" &&
-    $("#tab-map").getAttribute("aria-selected") === "true";
+  mapVisible = $("#tab-map").getAttribute("aria-selected") === "true";
+  updatePreviewSummary();
   if (mapVisible) revealMap();
+  saveSelection();
 }
 
 function installEvents() {
@@ -663,6 +535,7 @@ function installEvents() {
     });
   }
   $("#format").addEventListener("change", () => {
+    saveSelection();
     updateDownloadState();
     renderOutput();
   });
@@ -688,72 +561,67 @@ function installEvents() {
   });
 }
 
-async function start() {
+function saveSelection() {
   try {
-    const response = await fetch(new URL("manifest.json", base), {
-      cache: "no-cache",
-    });
-    if (!response.ok)
-      throw new Error("The dataset is unavailable. Please try again later.");
-    manifest = await response.json();
-    if (!manifest.downloads)
-      throw new Error(
-        "The data build is incomplete. Run the download build before starting the site.",
-      );
-    $("#total-count").textContent = number(manifest.count);
-    $("#check-date").textContent =
-      `Up to date as of ${date(manifest.last_checked)}`;
-    if (Date.now() - new Date(manifest.last_checked).getTime() > 3 * 86400_000)
-      showError(
-        $("#global-status"),
-        "The source check is overdue. The downloads below remain the last validated snapshot.",
-      );
-    $("#upstream-note").textContent =
-      `Source export: ${date(manifest.source_export)}. Latest checked upstream export: ${date(manifest.upstream_export)}. Published snapshot: ${manifest.version}.`;
-    for (const snapshot of manifest.history) {
-      const li = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = new URL(snapshot.records, base);
-      link.textContent = `${snapshot.source_export} · ${number(snapshot.count)} localities · JSON.gz`;
-      const metadata = document.createElement("a");
-      metadata.href = new URL(
-        `snapshots/${snapshot.version}/metadata.json`,
-        base,
-      );
-      metadata.textContent = "metadata";
-      li.append(link, " · ", metadata);
-      $("#snapshot-list").append(li);
-    }
-    renderDownloads();
-    const types = Object.entries(manifest.types).sort(([a], [b]) =>
-      a === "city"
-        ? -1
-        : b === "city"
-          ? 1
-          : a === "village"
-            ? -1
-            : b === "village"
-              ? 1
-              : a.localeCompare(b, "pl"),
+    sessionStorage.setItem(
+      selectionKey,
+      JSON.stringify({
+        filter: filter(),
+        fields: fields(),
+        format: $("#format").value,
+        mainTab:
+          $("#tab-map").getAttribute("aria-selected") === "true"
+            ? "tab-map"
+            : "tab-preview",
+        previewTab:
+          $("#tab-table").getAttribute("aria-selected") === "true"
+            ? "tab-table"
+            : "tab-output",
+      }),
     );
-    for (const [type, count] of types)
-      $("#type-options").append(
-        checkbox(type, typeLabel(type), true, "type", null, count),
-      );
-    for (const field of manifest.fields) {
-      const info = FIELD_INFO[field] || [field, "Original source field."];
-      $(
-        BASIC_FIELDS.includes(field) ? "#basic-fields" : "#extra-fields",
-      ).append(
-        checkbox(
-          field,
-          info[0],
-          BASIC_FIELDS.includes(field),
-          "field",
-          info[1],
-        ),
-      );
-    }
+  } catch {
+    /* The builder also works when storage is disabled. */
+  }
+}
+
+async function restoreSelection() {
+  let saved;
+  try {
+    saved = JSON.parse(sessionStorage.getItem(selectionKey));
+  } catch {
+    return;
+  }
+  if (!saved || !saved.filter || !Array.isArray(saved.fields)) return;
+  $("#search").value = saved.filter.query || "";
+  $("#province").value = saved.filter.province || "";
+  $("#name-status").value = saved.filter.status || "";
+  if ([...$("#format").options].some((option) => option.value === saved.format))
+    $("#format").value = saved.format;
+  for (const input of document.querySelectorAll("input[name=type]"))
+    input.checked =
+      saved.filter.types == null || saved.filter.types.includes(input.value);
+  for (const input of document.querySelectorAll("input[name=field]"))
+    input.checked = saved.fields.includes(input.value);
+  // Dependent options must exist before restoring county and commune values.
+  const scope = await message("filter", { filter: filter(), fields: fields() });
+  setOptions(
+    $("#district"),
+    scope.districts.map((name) => [name, name]),
+    t("All counties"),
+  );
+  $("#district").value = saved.filter.district || "";
+  const area = await message("filter", { filter: filter(), fields: fields() });
+  setOptions($("#commune"), area.communes, t("All communes"));
+  $("#commune").value = saved.filter.commune || "";
+  if (["tab-table", "tab-output"].includes(saved.previewTab))
+    activateTab($(`#${saved.previewTab}`));
+  if (["tab-map", "tab-preview"].includes(saved.mainTab))
+    activateTab($(`#${saved.mainTab}`));
+}
+
+async function start() {
+  updateDownloadState();
+  try {
     worker = new Worker(new URL("./data.worker.js", import.meta.url), {
       type: "module",
     });
@@ -772,26 +640,30 @@ async function start() {
         );
       waiting.clear();
     };
-    const { provinces, points } = await message("load", {
+    const { provinces } = await message("load", {
       manifest,
       base: base.href,
     });
-    drawOverview(points);
     setOptions(
       $("#province"),
       provinces.map((name) => [name, name]),
-      "All provinces",
+      t("All provinces"),
     );
     $("#filter-controls").disabled = false;
     $("#export-fields").disabled = false;
     $("#toggle-columns").disabled = false;
     $("#reset-filters").disabled = false;
+    await restoreSelection();
     installEvents();
+    window.addEventListener("pagehide", saveSelection);
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("a[href]")) saveSelection();
+    });
     await applyFilters();
   } catch (error) {
     showError($("#global-status"), error);
-    $("#loading").textContent = "The register could not be loaded";
-    $("#overview-map").setAttribute("aria-busy", "false");
+    busy = false;
+    updateDownloadState();
   }
 }
 
@@ -801,6 +673,4 @@ const adaptFilters = () => {
 };
 compactLayout.addEventListener("change", adaptFilters);
 adaptFilters();
-window.addEventListener("hashchange", () => showPage(true));
-showPage();
 start();

@@ -4,7 +4,6 @@ import { gzipSync } from "node:zlib";
 import { matches } from "../src/data.js";
 import { exportData } from "../src/export.js";
 import { decodedBody } from "../src/compression.js";
-import * as XLSX from "xlsx";
 
 const row = {
   id: 76566,
@@ -86,22 +85,6 @@ test("TSV preserves tabs with quoting and missing optional values as empty cells
     "tsv",
   );
   assert.equal(data, 'name\tmissing\r\n"A\tB"\t\r\n');
-});
-
-test("XLSX stores locality codes as text and includes source metadata", async () => {
-  const { data } = await exportData(
-    [row],
-    ["name", "id", "locality_code"],
-    "xlsx",
-    { source_export: "2026-09-30", version: "test-snapshot" },
-  );
-  const workbook = XLSX.read(data, { type: "array" });
-  const sheet = workbook.Sheets.Localities;
-  assert.equal(sheet.A2.v, "Małachów");
-  assert.equal(sheet.B2.v, 76566);
-  assert.equal(sheet.C2.v, "0244340");
-  assert.equal(sheet.C2.t, "s");
-  assert.equal(workbook.Sheets.Source.B2.v, "2026-09-30");
 });
 
 test("empty field selection is rejected", async () => {

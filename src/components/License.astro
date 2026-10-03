@@ -1,0 +1,77 @@
+---
+import { translator, pagePath } from "../i18n/index.js";
+const { locale } = Astro.props;
+const t = translator(locale);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+const asset = (path) => `${base}${path}`;
+const url = (page) => pagePath(locale, page, base);
+---
+
+<section
+  id="license"
+  class="document-page"
+  data-page="license"
+  aria-labelledby="license-title"
+>
+  <h2 id="license-title" tabindex="-1">
+    {t("License and attribution")}
+  </h2>
+  <p>
+    {t("The dataset and this project use the")}{" "}
+    <a href="https://creativecommons.org/licenses/by/4.0/">
+      {t("Creative Commons Attribution 4.0 license (CC BY 4.0)")}
+    </a>
+    {t(
+      ". You can use and share them, including for commercial purposes, under the license terms.",
+    )}
+  </p>
+  <h3>{t("Data attribution")}</h3>
+  <p>
+    {t(
+      "Keep this attribution when you use or share the data. Include a link to the license and indicate any changes you make.",
+    )}
+  </p>
+  <blockquote>
+    {t(
+      "Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0. Converted by Polish geonames.",
+    )}
+  </blockquote>
+  <p>
+    <a
+      id="attribution-download"
+      href={asset("data/downloads/SOURCE.txt")}
+      download
+    >
+      {t("Download the source and attribution note")}
+    </a>
+    {t(". It includes the source export date for the current dataset.")}
+  </p>
+  <h3>{t("Map")}</h3>
+  <p>
+    {t("Map tiles and map data:")}{" "}
+    <a href="https://www.openstreetmap.org/copyright">
+      {t("© OpenStreetMap contributors")}
+    </a>
+    {t(
+      ". The map background has its own attribution; downloaded locality data comes from PRNG.",
+    )}
+  </p>
+  <p>
+    {t("The GitHub icon is from")}{" "}
+    <a href="https://github.com/primer/octicons">{t("Primer Octicons")}</a>{" "}
+    {t("and uses the")}{" "}
+    <a href={asset("icons-LICENSE.txt")}>{t("MIT license")}</a>
+    {t(".")}
+  </p>
+  <p>
+    {t("See the")} <a href={url("source")}>{t("data source page")}</a>{" "}
+    {t("for coverage, coordinates, and update details, or")}{" "}
+    <a href="https://github.com/mbroton/polish-geonames">
+      <svg class="icon github-icon" aria-hidden="true" focusable="false">
+        <use href={asset("icons.svg#github")}></use>
+      </svg>
+      {t("view the project on GitHub")}
+    </a>
+    {t(".")}
+  </p>
+</section>

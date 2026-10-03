@@ -38,7 +38,7 @@ class StateTests(unittest.TestCase):
             (snapshot / "records.json.gz").write_bytes(b"fixed snapshot content")
             (data / "manifest.json").write_text(json.dumps({"version": "test-version", "last_checked": "first"}))
             (data / "downloads").mkdir()
-            (data / "downloads/large.xlsx").write_bytes(b"must not be committed")
+            (data / "downloads/all-localities.json.gz").write_bytes(b"must not be committed")
 
             for check in ["first", "second"]:
                 (data / "manifest.json").write_text(json.dumps({"version": "test-version", "last_checked": check}))

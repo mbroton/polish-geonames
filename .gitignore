@@ -1,5 +1,7 @@
 node_modules/
 dist/
+.astro/
+.wrangler/
 public/data/
 .cache/
 __pycache__/
