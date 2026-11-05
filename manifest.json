@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
-  "version": "2026-11-03-2d4380ceebcb",
-  "content_hash": "2d4380ceebcb59fee1b5c2935b590a41dd4c51bf7ac990a34587fb282e28523a",
-  "source_export": "2026-11-03",
-  "upstream_export": "2026-11-03",
-  "last_checked": "2026-11-04T13:15:10+00:00",
+  "version": "2026-11-04-5a68f890ed7d",
+  "content_hash": "5a68f890ed7deb39bf481276c5a1689dc9c2a88d6f267fb2b73e3f188c4b9c63",
+  "source_export": "2026-11-04",
+  "upstream_export": "2026-11-04",
+  "last_checked": "2026-11-05T13:29:05+00:00",
   "source_url": "https://opendata.geoportal.gov.pl/prng/PRNG_MIEJSCOWOSCI_GML.zip",
   "license": "https://creativecommons.org/licenses/by/4.0/",
   "attribution": "Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0. Converted by Polish geonames.",
@@ -80,12 +80,18 @@
     "schronisko turystyczne": 45,
     "village": 43638
   },
-  "index": "snapshots/2026-11-03-2d4380ceebcb/index.json.gz",
-  "records": "snapshots/2026-11-03-2d4380ceebcb/records.json.gz",
-  "index_bytes": 5202059,
-  "records_bytes": 15459813,
-  "previous_version": "2026-10-30-ebec3ee0abea",
+  "index": "snapshots/2026-11-04-5a68f890ed7d/index.json.gz",
+  "records": "snapshots/2026-11-04-5a68f890ed7d/records.json.gz",
+  "index_bytes": 5202311,
+  "records_bytes": 15461267,
+  "previous_version": "2026-11-03-2d4380ceebcb",
   "history": [
+    {
+      "version": "2026-11-04-5a68f890ed7d",
+      "source_export": "2026-11-04",
+      "count": 124238,
+      "records": "snapshots/2026-11-04-5a68f890ed7d/records.json.gz"
+    },
     {
       "version": "2026-11-03-2d4380ceebcb",
       "source_export": "2026-11-03",
@@ -282,29 +288,29 @@
         {
           "format": "json",
           "path": "downloads/cities-villages.json.gz",
-          "bytes": 7609936,
-          "transfer_bytes": 1662651,
+          "bytes": 7610034,
+          "transfer_bytes": 1662716,
           "compressed": true
         },
         {
           "format": "csv",
           "path": "downloads/cities-villages.csv.gz",
-          "bytes": 4304851,
-          "transfer_bytes": 1491886,
+          "bytes": 4304949,
+          "transfer_bytes": 1491944,
           "compressed": true
         },
         {
           "format": "tsv",
           "path": "downloads/cities-villages.tsv.gz",
-          "bytes": 4304851,
-          "transfer_bytes": 1491873,
+          "bytes": 4304949,
+          "transfer_bytes": 1491929,
           "compressed": true
         },
         {
           "format": "geojson",
           "path": "downloads/cities-villages.geojson.gz",
-          "bytes": 13108209,
-          "transfer_bytes": 2329332,
+          "bytes": 13108405,
+          "transfer_bytes": 2329400,
           "compressed": true
         }
       ]
@@ -348,29 +354,29 @@
         {
           "format": "json",
           "path": "downloads/all-localities.json.gz",
-          "bytes": 161388466,
-          "transfer_bytes": 15986361,
+          "bytes": 161389347,
+          "transfer_bytes": 15987783,
           "compressed": true
         },
         {
           "format": "csv",
           "path": "downloads/all-localities.csv.gz",
-          "bytes": 113971124,
-          "transfer_bytes": 15382464,
+          "bytes": 113972005,
+          "transfer_bytes": 15383593,
           "compressed": true
         },
         {
           "format": "tsv",
           "path": "downloads/all-localities.tsv.gz",
-          "bytes": 113968166,
-          "transfer_bytes": 15380341,
+          "bytes": 113969047,
+          "transfer_bytes": 15381506,
           "compressed": true
         },
         {
           "format": "geojson",
           "path": "downloads/all-localities.geojson.gz",
-          "bytes": 176650316,
-          "transfer_bytes": 17788231,
+          "bytes": 176651631,
+          "transfer_bytes": 17789724,
           "compressed": true
         }
       ]
