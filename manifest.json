@@ -1,14 +1,14 @@
 {
   "schema_version": 2,
-  "version": "2026-11-12-a9fda715a086",
-  "content_hash": "a9fda715a0861455a8556e69181cbb9ae07f123e635800c21bc345f458d0ef68",
-  "source_export": "2026-11-12",
-  "upstream_export": "2026-11-12",
-  "last_checked": "2026-11-16T13:58:44+00:00",
+  "version": "2026-11-16-c41226240e35",
+  "content_hash": "c41226240e351c74f7ff39e4a452d8bcf718c998554007e54cf319fa69779756",
+  "source_export": "2026-11-16",
+  "upstream_export": "2026-11-16",
+  "last_checked": "2026-11-17T14:51:34+00:00",
   "source_url": "https://opendata.geoportal.gov.pl/prng/PRNG_MIEJSCOWOSCI_GML.zip",
   "license": "https://creativecommons.org/licenses/by/4.0/",
   "attribution": "Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0. Converted by Polish geonames.",
-  "count": 124236,
+  "count": 124235,
   "fields": [
     "id",
     "name",
@@ -63,7 +63,7 @@
     "kolonia": 2400,
     "kolonia kolonii": 32,
     "kolonia osady": 20,
-    "kolonia wsi": 3903,
+    "kolonia wsi": 3902,
     "leśniczówka": 1105,
     "osada": 5287,
     "osada kolonii": 4,
@@ -80,12 +80,18 @@
     "schronisko turystyczne": 45,
     "village": 43638
   },
-  "index": "snapshots/2026-11-12-a9fda715a086/index.json.gz",
-  "records": "snapshots/2026-11-12-a9fda715a086/records.json.gz",
-  "index_bytes": 5203640,
-  "records_bytes": 15468483,
-  "previous_version": "2026-11-10-d0aeb19907b3",
+  "index": "snapshots/2026-11-16-c41226240e35/index.json.gz",
+  "records": "snapshots/2026-11-16-c41226240e35/records.json.gz",
+  "index_bytes": 5203653,
+  "records_bytes": 15468766,
+  "previous_version": "2026-11-12-a9fda715a086",
   "history": [
+    {
+      "version": "2026-11-16-c41226240e35",
+      "source_export": "2026-11-16",
+      "count": 124235,
+      "records": "snapshots/2026-11-16-c41226240e35/records.json.gz"
+    },
     {
       "version": "2026-11-12-a9fda715a086",
       "source_export": "2026-11-12",
@@ -318,36 +324,36 @@
         {
           "format": "json",
           "path": "downloads/cities-villages.json.gz",
-          "bytes": 7610971,
-          "transfer_bytes": 1663247,
+          "bytes": 7611016,
+          "transfer_bytes": 1663268,
           "compressed": true
         },
         {
           "format": "csv",
           "path": "downloads/cities-villages.csv.gz",
-          "bytes": 4305886,
-          "transfer_bytes": 1492422,
+          "bytes": 4305931,
+          "transfer_bytes": 1492447,
           "compressed": true
         },
         {
           "format": "tsv",
           "path": "downloads/cities-villages.tsv.gz",
-          "bytes": 4305886,
-          "transfer_bytes": 1492410,
+          "bytes": 4305931,
+          "transfer_bytes": 1492435,
           "compressed": true
         },
         {
           "format": "geojson",
           "path": "downloads/cities-villages.geojson.gz",
-          "bytes": 13110279,
-          "transfer_bytes": 2329983,
+          "bytes": 13110369,
+          "transfer_bytes": 2330023,
           "compressed": true
         }
       ]
     },
     {
       "id": "all-localities",
-      "count": 124236,
+      "count": 124235,
       "fields": [
         "id",
         "name",
@@ -384,29 +390,29 @@
         {
           "format": "json",
           "path": "downloads/all-localities.json.gz",
-          "bytes": 161391602,
-          "transfer_bytes": 15995135,
+          "bytes": 161390864,
+          "transfer_bytes": 15995387,
           "compressed": true
         },
         {
           "format": "csv",
           "path": "downloads/all-localities.csv.gz",
-          "bytes": 113975070,
-          "transfer_bytes": 15389794,
+          "bytes": 113974735,
+          "transfer_bytes": 15390008,
           "compressed": true
         },
         {
           "format": "tsv",
           "path": "downloads/all-localities.tsv.gz",
-          "bytes": 113972114,
-          "transfer_bytes": 15387213,
+          "bytes": 113971779,
+          "transfer_bytes": 15387430,
           "compressed": true
         },
         {
           "format": "geojson",
           "path": "downloads/all-localities.geojson.gz",
-          "bytes": 176655912,
-          "transfer_bytes": 17797299,
+          "bytes": 176655176,
+          "transfer_bytes": 17797591,
           "compressed": true
         }
       ]
