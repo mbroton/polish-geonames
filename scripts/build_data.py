@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import shutil
 import sys
+import time
 import urllib.request
 import zipfile
 
@@ -19,6 +20,7 @@ from parser import BASIC_FIELDS, CORE_FIELDS, parse_data
 SOURCE_URL = "https://opendata.geoportal.gov.pl/prng/PRNG_MIEJSCOWOSCI_GML.zip"
 ATTRIBUTION = "Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0. Converted by Polish geonames."
 LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
+DOWNLOAD_ATTEMPTS = 3
 
 
 def encode(value):
@@ -119,6 +121,22 @@ def prepare(source, output, source_date=None, production=True, keep_snapshots=30
     return manifest
 
 
+def download(url, path, timeout=30, wait=30):
+    """Download url to path. Retry network errors, because the upstream server sometimes drops connections."""
+    request = urllib.request.Request(url, headers={"User-Agent": "polish-geonames/2 (github.com/mbroton/polish-geonames)"})
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response, path.open("wb") as file:
+                while chunk := response.read(1024 * 1024):
+                    file.write(chunk)
+            return
+        except OSError as error:
+            if attempt == DOWNLOAD_ATTEMPTS:
+                raise
+            print(f"Download attempt {attempt} failed: {error}. Retrying.", file=sys.stderr)
+            time.sleep(wait * attempt)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, help="use an existing official ZIP export")
@@ -129,10 +147,7 @@ def main():
     if source is None:
         source = Path(".cache/PRNG_MIEJSCOWOSCI_GML.zip")
         source.parent.mkdir(parents=True, exist_ok=True)
-        request = urllib.request.Request(SOURCE_URL, headers={"User-Agent": "polish-geonames/2 (github.com/mbroton/polish-geonames)"})
-        with urllib.request.urlopen(request, timeout=120) as response, source.open("wb") as file:
-            while chunk := response.read(1024 * 1024):
-                file.write(chunk)
+        download(SOURCE_URL, source)
     if options.keep_snapshots < 1:
         parser.error("--keep-snapshots must be at least 1")
     prepare(source, options.output, keep_snapshots=options.keep_snapshots)
