@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
-  "version": "2026-11-24-23e5356dcc1a",
-  "content_hash": "23e5356dcc1af741e9e3894c54b852c572f082dd2f9a4cd9d5b714206081a743",
-  "source_export": "2026-11-24",
-  "upstream_export": "2026-11-24",
-  "last_checked": "2026-11-25T16:00:20+00:00",
+  "version": "2026-11-25-6bbaca2cedba",
+  "content_hash": "6bbaca2cedba596cb62e254a63fcfe2bc4f8c7925438c0ed844eadd5ad9aaf93",
+  "source_export": "2026-11-25",
+  "upstream_export": "2026-11-25",
+  "last_checked": "2026-11-26T15:42:54+00:00",
   "source_url": "https://opendata.geoportal.gov.pl/prng/PRNG_MIEJSCOWOSCI_GML.zip",
   "license": "https://creativecommons.org/licenses/by/4.0/",
   "attribution": "Data: GUGiK, Państwowy Rejestr Nazw Geograficznych (PRNG), CC BY 4.0. Converted by Polish geonames.",
@@ -80,12 +80,18 @@
     "schronisko turystyczne": 45,
     "village": 43638
   },
-  "index": "snapshots/2026-11-24-23e5356dcc1a/index.json.gz",
-  "records": "snapshots/2026-11-24-23e5356dcc1a/records.json.gz",
-  "index_bytes": 5205518,
-  "records_bytes": 15479127,
-  "previous_version": "2026-11-23-74776c981a05",
+  "index": "snapshots/2026-11-25-6bbaca2cedba/index.json.gz",
+  "records": "snapshots/2026-11-25-6bbaca2cedba/records.json.gz",
+  "index_bytes": 5205734,
+  "records_bytes": 15480322,
+  "previous_version": "2026-11-24-23e5356dcc1a",
   "history": [
+    {
+      "version": "2026-11-25-6bbaca2cedba",
+      "source_export": "2026-11-25",
+      "count": 124231,
+      "records": "snapshots/2026-11-25-6bbaca2cedba/records.json.gz"
+    },
     {
       "version": "2026-11-24-23e5356dcc1a",
       "source_export": "2026-11-24",
@@ -259,12 +265,6 @@
       "source_export": "2026-10-12",
       "count": 124244,
       "records": "snapshots/2026-10-12-64f0fd57684c/records.json.gz"
-    },
-    {
-      "version": "2026-10-09-ae4fe4368646",
-      "source_export": "2026-10-09",
-      "count": 124244,
-      "records": "snapshots/2026-10-09-ae4fe4368646/records.json.gz"
     }
   ],
   "snapshot_limit": 30,
@@ -330,29 +330,29 @@
         {
           "format": "json",
           "path": "downloads/cities-villages.json.gz",
-          "bytes": 7612535,
-          "transfer_bytes": 1664141,
+          "bytes": 7612717,
+          "transfer_bytes": 1664237,
           "compressed": true
         },
         {
           "format": "csv",
           "path": "downloads/cities-villages.csv.gz",
-          "bytes": 4307450,
-          "transfer_bytes": 1493270,
+          "bytes": 4307632,
+          "transfer_bytes": 1493381,
           "compressed": true
         },
         {
           "format": "tsv",
           "path": "downloads/cities-villages.tsv.gz",
-          "bytes": 4307450,
-          "transfer_bytes": 1493259,
+          "bytes": 4307632,
+          "transfer_bytes": 1493374,
           "compressed": true
         },
         {
           "format": "geojson",
           "path": "downloads/cities-villages.geojson.gz",
-          "bytes": 13113407,
-          "transfer_bytes": 2330916,
+          "bytes": 13113771,
+          "transfer_bytes": 2331035,
           "compressed": true
         }
       ]
@@ -396,29 +396,29 @@
         {
           "format": "json",
           "path": "downloads/all-localities.json.gz",
-          "bytes": 161393963,
-          "transfer_bytes": 16005795,
+          "bytes": 161394614,
+          "transfer_bytes": 16006965,
           "compressed": true
         },
         {
           "format": "csv",
           "path": "downloads/all-localities.csv.gz",
-          "bytes": 113979470,
-          "transfer_bytes": 15398925,
+          "bytes": 113980123,
+          "transfer_bytes": 15399887,
           "compressed": true
         },
         {
           "format": "tsv",
           "path": "downloads/all-localities.tsv.gz",
-          "bytes": 113976520,
-          "transfer_bytes": 15395765,
+          "bytes": 113977173,
+          "transfer_bytes": 15396716,
           "compressed": true
         },
         {
           "format": "geojson",
           "path": "downloads/all-localities.geojson.gz",
-          "bytes": 176661094,
-          "transfer_bytes": 17807949,
+          "bytes": 176662060,
+          "transfer_bytes": 17809129,
           "compressed": true
         }
       ]
